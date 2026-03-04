@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from flask_jwt_extended import *
 import os
 from dotenv import load_dotenv
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import timedelta
 
 load_dotenv()
@@ -36,12 +36,11 @@ def joinhome():
 def login():
     id_receive = request.form.get("id_give")
     pw_receive = request.form.get("pw_give")
-    access_token = create_access_token(identity=id_receive)
 
     user = user_collection.find_one({"id": id_receive})
     if not user:
         return jsonify(success=False, message="존재하지 않는 사용자입니다.")
-    elif not check_password_hash(int(user["password"]), pw_receive):
+    elif not check_password_hash(user["pw"], pw_receive):
         return jsonify(success=False, message="비밀번호가 올바르지 않습니다.")
 
     access_token = create_access_token(identity=id_receive)
@@ -62,17 +61,17 @@ def join():
     number_receive = request.form["number_give"]
 
     # 중복 아이디 검사 조작 검사용
-    if db.USER.count_documents({"id": id_receive}) > 0:
+    if user_collection.count_documents({"id": id_receive}) > 0:
         return jsonify({"result": "중복된 아이디입니다."})
 
     user = {
         "id": id_receive,
-        "pw": pw_receive,
+        "pw": generate_password_hash(pw_receive),
         "name": name_receive,
         "gen": gen_receive,
         "number_receive": number_receive,
     }
-    db.USER.insert_one(user)
+    user_collection.insert_one(user)
     return jsonify({"result": "회원가입 성공"})
 
 
@@ -80,7 +79,7 @@ def join():
 @jwt_required()
 def delete():
     current_user = get_jwt_identity()
-    db.USER.delete_one({"id": current_user})
+    user_collection.delete_one({"id": current_user})
     return jsonify({"result": "회원 탈퇴 성공"})
 
 
@@ -89,7 +88,7 @@ def delete():
 @jwt_required()
 def get_me():
     current_user_id = get_jwt_identity()
-    current_user = user_collection.find_one({"id": current_user_id})
+    current_user = user_collection.find_one({"id": current_user_id},{"pw":0})
 
     return jsonify(current_user)
 
@@ -116,13 +115,13 @@ def edit():
         edit_data["name"] = name_receive
 
     if pw_receive:
-        edit_data["pw"] = pw_receive
+        edit_data["pw"] = generate_password_hash(pw_receive)
 
     if gen_receive:
         edit_data["gen"] = gen_receive
 
     if number_receive:
-        edit_data["number"] = number_receive
+        edit_data["number_receive"] = number_receive
 
     if edit_data:
         result = user_collection.update_one(
