@@ -26,16 +26,6 @@ app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 def home():
     return render_template('index.html')
 
-@app.route("/login", methods=["POST"])
-def login():
-    id_receive = request.form['id_give']
-    pw_receive = request.form['pw_give']
-    access_token = create_access_token(identity=id_receive)
-
-    # 로그인 정보 맞으면  return {"access_token": access_token}
-
-    # 로그인
-
 @app.route('/login', methods=['POST'])
 def login():
     id_receive = request.form.get('id_give')
