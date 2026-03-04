@@ -37,9 +37,9 @@ def login():
 def join():
     id_receive = request.form["id_give"]
     pw_receive = request.form["pw_give"]
-    name_receive = request.form["pw_give"]
-    gen_receive = request.form["pw_give"]
-    number_receive = request.form["pw_give"]
+    name_receive = request.form["name_give"]
+    gen_receive = request.form["gen_give"]
+    number_receive = request.form["number_give"]
 
     # 중복 아이디 검사 조작 검사용
     if db.USER.count_documents({"id": id_receive}) > 0:
