@@ -79,9 +79,9 @@
     </div>
     <script>
         $("#join_btn").click(function(){
-            let name = $("#name").val()
             let id = $("#id").val()
             let pw = $("#pw").val()
+            let name = $("#name").val()
             let gen = $("#gen").val()
             let number = $("#number").val()
 
@@ -89,15 +89,15 @@
                 type: "POST",
                 url: "/join",
                 data: {
-                    name: name,
-                    id: id,
-                    pw: pw,
-                    gen: gen,
-                    number: number
+                    id_give: id,
+                    pw_give: pw,
+                    name_give: name,
+                    gen_give: gen,
+                    number_give: number
                 },
                 success: function(response){
-                    if (response["result"] == "success") {
-                        alert("회원가입이 완료되었습니다.");
+                    if (response && response["result"]) {
+                        alert(response["result"]);
                     } else {
                         alert("회원가입에 실패했습니다");
                     }
