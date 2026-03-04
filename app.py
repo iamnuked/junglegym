@@ -68,6 +68,14 @@ def join():
     return jsonify({'result':'회원가입 성공'})
 
 
+@app.route("/delete", methods=["POST"])
+@jwt_required()
+def delete():
+    current_user = get_jwt_identity()
+    db.USER.delete_one({"id": current_user})
+    return jsonify({'result':'회원 탈퇴 성공'})
+
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=os.environ.get("PORT"), debug=True)
