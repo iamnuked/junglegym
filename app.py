@@ -54,25 +54,67 @@ def login():
 
 @app.route("/join", methods=["POST"])
 def join():
-    id_receive = request.form["id_give"]
-    pw_receive = request.form["pw_give"]
-    name_receive = request.form["name_give"]
-    gen_receive = request.form["gen_give"]
-    number_receive = request.form["number_give"]
+    name_receive = request.form["name_give"].strip()
+    id_receive = request.form["id_give"].strip()
+    pw_receive = request.form["pw_give"].strip()
+    gen_receive = request.form["gen_give"].strip()
+    number_receive = request.form["number_give"].strip()
 
-    # 중복 아이디 검사 조작 검사용
-    if user_collection.count_documents({"id": id_receive}) > 0:
-        return jsonify({"result": "중복된 아이디입니다."})
+
 
     user = {
-        "id": id_receive,
-        "pw": generate_password_hash(pw_receive),
         "name": name_receive,
+        "id": id_receive,
+        "pw": pw_receive,
         "gen": gen_receive,
         "number_receive": number_receive,
     }
+
+
+    # 빈 항목 검사
+    for key, value in user.items():
+        if not value:
+            return jsonify({"result": f"{key}를 입력해주세요."})
+        
+    # 이름 길이 검사
+    if len(name_receive) > 10 or len(name_receive) < 2:
+        return jsonify({"result": "잘못된 이름입니다"})
+
+        
+    # 아이디 길이 검사
+    if len(id_receive) > 20:
+        return jsonify({"result": "아이디가 너무 깁니다."})
+    if len(id_receive) < 4:
+        return jsonify({"result": "아이디가 너무 짧습니다."})
+
+
+    # 비밀번호 길이 검사
+    if len(pw_receive) > 40:
+        return jsonify({"result": "패스워드가 너무 깁니다."})
+    if len(pw_receive) < 4:
+        return jsonify({"result": "패스워드가 너무 짧습니다."})
+
+    # 기수 검사
+    if gen_receive != "12기" and gen_receive != "13기":
+        return jsonify({"result": "잘못된 기수번호 입니다"})
+    
+
+    # 번호 검사
+    if int(number_receive) < 1 or int(number_receive) > 200:
+        return jsonify({"result": "잘못된 번호입니다."})
+        
+    # 중복 아이디 검사
+    if user_collection.count_documents({"id": id_receive}) > 0:
+        return jsonify({"result": "중복 아이디입니다."})
+    
+    
+    user["pw"] = generate_password_hash(pw_receive)
+
     user_collection.insert_one(user)
     return jsonify({"result": "회원가입 성공"})
+
+
+                 
 
 
 @app.route("/delete", methods=["POST"])
