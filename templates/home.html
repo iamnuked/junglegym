@@ -89,7 +89,7 @@
           <div
             class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7">
             <div>
-              <p class="font_small text-white">원할</p>
+              <p class="gym_status font_small text-white">원할</p>
             </div>
             <div>
               <p class="font_small">
@@ -537,60 +537,95 @@
           },
         });
       };
+
+
+
+
+      let now_count = 0;
+      let now_date_time = "";
+      let total_list = [];
+      
       const setPopularFunction = () => {
         $.ajax({
-          type: "get",
-          url: "",
-          data: {},
-          success: (response) => {
-            const ctx = document.getElementById("myChart");
-            const last_date = popularHealthLocation();
-
+          type:"get",
+          url:"/get_now_complex",
+          data:{},
+          success: (response)=>{
+            now_count = response[0]["count"]
+            now_date_time = response[0]["datetime"]
+            $(".total_exercize_number").text(now_count)
+          }
+        })
+        const last_date = $(".total_exercize_number").text();
             dashboard_color_array = [
               "from-[#038002]",
               "from-red-600",
               "from-yellow-400",
             ];
+            dashboard_text_color_array = [
+              "text-white",
+              "text-black",
+              "font-bold"
+            ]
             for (i = 0; i < dashboard_color_array.length; i++) {
               $(".dash_board_popular").removeClass(dashboard_color_array[i]);
             }
+            for (i = 0; i < dashboard_text_color_array.length; i++) {
+              $(".gym_status").removeClass(dashboard_text_color_array[i])
+            };
             if (last_date < 15) {
               $(".dash_board_popular").addClass("from-[#038002]");
+              
+              $(".gym_status").text("원할").addClass("text-white")
             } else if (last_date >= 15 && last_date < 30) {
               $(".dash_board_popular").addClass("from-yellow-600");
+              
+            $(".gym_status").text("다소혼잡").addClass("text-black")
+
             } else {
               $(".dash_board_popular").addClass("from-red-600");
-            }
-            $(".total_excersize_number").text(last_date);
-            // 백엔드와 협의 필요
-            const day_array = Object.keys(request);
-            const people_array = [];
-            for (let i = 0; i < day_array.length; i++) {
-              people_array.push(response[day_array[i]]);
+              $(".gym_status").text("혼잡").addClass("font-bold").addClass("text-white")
             }
 
+
+        $.ajax({
+          type:"get",
+          url:"/get_today_complex",
+          data:{},
+          success:(response)=>{
+            const ctx = document.getElementById("myChart");
+
+            console.log(response)
+            $(".total_excersize_number").text(last_date);
+            // 백엔드와 협의 필요
+            // const day_array = Object.keys(request);
+            // const people_array = [];
+            // for (let i = 0; i < day_array.length; i++) {
+            //   people_array.push(response[day_array[i]]);
+            // }
+
             // "2016-10-20 17:23:00"
+            present_dataset = []
+            for(let i=0;i<response.length;i++) {
+              data = response[i];
+              x = "2026-03-02 " + data["datetime"].split("T")[1].split(":")[0];
+              y = data["count"]
+              present_dataset.push({x:x,y:y})
+            }
             new Chart(ctx, {
               type: "line",
               data: {
-                labels: ["2026-03-05 00:00:00", "2026-03-05 24:00"],
+                labels: ["2026-03-02 00", "2026-03-02 24"],
                 datasets: [
                   {
                     label: "현재 인원",
-                    data: [
-                      { x: "2026-03-05 10:00:00", y: 12 },
-                      { x: "2026-03-05 11:00:00", y: 19 },
-                      { x: "2026-03-05 12:00:00", y: 7 },
-                    ],
+                    data: present_dataset,
                     borderColor: "blue",
                     borderWidth: 2,
                   },
                   {
                     label: "과거 인원",
                     data: [
-                      { x: "2026-03-05 10:00:00", y: 6 },
-                      { x: "2026-03-05 11:00:00", y: 9 },
-                      { x: "2026-03-05 12:00:00", y: 17 },
                     ],
                     borderColor: "red",
                     borderWidth: 2,
@@ -628,19 +663,11 @@
                 },
               },
             });
-          },
-        });
+          }
+        })
       };
 
       // render
-      $.ajax({
-        type:'get',
-        url:"/get_today_complex",
-        data:{},
-        success:(response)=>{
-          console.log(response)
-        }
-      })
       const testRanking = [
         { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
         { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
@@ -724,9 +751,10 @@
 
     document.getElementById("btn-week").addEventListener("click", () => drawChart(weekly));
     document.getElementById("btn-month").addEventListener("click", () => drawChart(monthly));
-
+      
     // 첫 그래프는 주간그래프
     drawChart(weekly);
+    setPopularFunction();
     </script>
 </body>
 

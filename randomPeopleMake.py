@@ -55,35 +55,24 @@ use_history_list = []
 
 historyConfigure = [3]
 gym_data_list = []
-location_setting = set()
+location_setting = []
 now = datetime.now()
 # 거점 만들기
-for i in range(100):
-    day = random.randint(2, 5)
-    if day == 2:
-        hour = random.randint(18, 20)
-    else:
-        hour = random.randint(6, 20)
-    minute = random.randint(0, 59)
-    # month = historyConfigure[random.randint(0, len(historyConfigure) - 1)]
-    start = datetime(
-        2026,
-        3,
-        day,
-        hour,
-        minute,
-    )
-    if now < start:
-        continue
-    location_setting.add(start)
-location_setting.add(now - timedelta(hours=-4))
-location_setting.add(now - timedelta(hours=-2))
-location_setting.add(now)
-location_setting = sorted(list(location_setting))
+counting = int(
+    (
+        now - datetime(year=2026, month=3, day=2, hour=18, minute=0, second=0)
+    ).total_seconds()
+    // timedelta(hours=1).total_seconds()
+)
+
+minus_value = now
+location_setting.append(minus_value)
+for i in range(counting):
+    minus_value = minus_value - timedelta(hours=1)
+    location_setting.append(minus_value)
 
 
 # GYM_DATA 생성
-now_count = 30
 shuffled_user = user_list
 for gym_datetime in location_setting:  # 6시~21시
     random.shuffle(shuffled_user)
