@@ -76,6 +76,8 @@ for i in range(100):
     if now < start:
         continue
     location_setting.add(start)
+location_setting.add(now - timedelta(hours=-4))
+location_setting.add(now - timedelta(hours=-2))
 location_setting.add(now)
 location_setting = sorted(list(location_setting))
 

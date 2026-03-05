@@ -633,7 +633,14 @@
       };
 
       // render
-      $(".get_now_complex")
+      $.ajax({
+        type:'get',
+        url:"/get_today_complex",
+        data:{},
+        success:(response)=>{
+          console.log(response)
+        }
+      })
       const testRanking = [
         { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
         { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
