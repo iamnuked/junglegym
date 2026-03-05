@@ -88,13 +88,8 @@
                 name="gen_give"
                 class="w-[50%] bg-gray-200 border-none outline-none p-2 text-black"
               >
-                {% if user.gen == "12기" %}
-                <option value="12기" selected>12기</option>
-                <option value="13기">13기</option>
-                {% else %}
-                <option value="12기">12기</option>
-                <option value="13기" selected>13기</option>
-                {% endif %}
+                <option value="12기" {{ 'selected' if user.gen == '12기' else '' }}>12기</option>
+                <option value="13기" {{ 'selected' if user.gen == '13기' else '' }}>13기</option>
               </select>
 
               <input
