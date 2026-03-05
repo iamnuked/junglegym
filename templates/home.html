@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script
+      src="https://code.jquery.com/jquery-4.0.0.js"
+      integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='home.css') }}"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  </head>
+
+  <body>
+    <div class="p-3 flex flex-col min-h-screen">
+      <div class="">
+        <p class="font_medium">정글러의 득근득근한 생활을 위한</p>
+        <p class="font_large font-bold">Jung/eGYM</p>
+      </div>
+      <div class="flex flex-1 flex-row">
+        <div class="flex-2 flex flex-col">
+          <div class="outline-2 rounded-[15px] space-y-7 flex-1">
+            <!-- 로그인 전에 보일 부분 -->
+            {% if not user %}
+            <div class="login_pannel space-y-4" id="login_section">
+              <input
+                type="text"
+                placeholder="ID"
+                class="login_id_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition"
+              />
+              <input
+                type="password"
+                placeholder="PWD"
+                class="login_password_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition"
+              />
+              <button
+                class="font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                onclick="loginButton(this)"
+              >
+                로그인
+              </button>
+              <button
+                class="font_medium register font_medium rounded-lg outline-[#dddddd] outline-2 border-none w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+                onclick="registerButton(this)"
+              >
+                회원가입 후 운동기록하기
+              </button>
+            </div>
+            {% endif %}
+            <!-- 로그인 후에 보일 부분 -->
+            {% if user %}
+            <div class="login_pannel space-y-6" id="user_section">
+              <div class="flex items-start justify-between">
+                <!-- 왼쪽 텍스트 -->
+                <span id="txt_welcome" class="leading-relaxed text-black">
+                  {{ user.name }}님의<br />
+                  건강한 정글 생활을 응원합니다
+                </span>
+
+                <!-- 오른쪽 버튼 -->
+                <a href="/edit" class="flex-shrink-0">
+                  <img
+                    src="{{ url_for('static', filename='icons/edit.svg') }}"
+                    class="w-6 h-6"
+                  />
+                </a>
+              </div>
+              <div class="exercise_btn">
+                <button
+                  class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                  onclick="exerciseStartAPI(this)"
+                >
+                  GYM출근
+                </button>
+              </div>
+              <button
+                class="w-full text-center underline"
+                onclick="logoutButton(this)"
+              >
+                로그아웃
+              </button>
+            </div>
+            {% endif %}
+            <!-- 메뉴 -->
+            <div class="login_pannel space-y-6" id="menu_section">
+              <button
+                class="font_medium dash_board_pannel rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+                onclick="dashBoardButton(this)"
+              >
+                홈
+              </button>
+              <button
+                class="font_medium record font_medium rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+                onclick="recordButton(this)"
+              >
+                나의 기록
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="main_menu flex-8 flex flex-col ml-1">
+          <!--홈메뉴-->
+          <div class="home_menu flex-8 flex flex-col" h>
+            <div
+              class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7"
+            >
+              <div>
+                <p class="font_small text-white">원할</p>
+              </div>
+              <div>
+                <p class="font_small">
+                  현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
+                </p>
+              </div>
+              <div>
+                <p class="font_small">
+                  총
+                  <span class="total_exercize_number font_small font-bold"
+                    >10</span
+                  >명 입니다.
+                </p>
+              </div>
+              <div class="w-[100%] h-[60%]">
+                <canvas id="myChart"></canvas>
+              </div>
+            </div>
+            <div
+              class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8"
+            >
+              <div class="ranking_table m-4"></div>
+            </div>
+          </div>
+          <!--나의 기록 메뉴-->
+          <div class="my_record bg-red-600 w-[100%] h-[100%] hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 로그인 스크립트
+      function loginButton(e) {
+        // 로그인 버튼
+        const login_id = $(".login_id_btn").val();
+        const login_password = $(".login_password_btn").val();
+
+        $.ajax({
+          type: "post",
+          url: "/login",
+          data: {
+            id_give: login_id,
+            pw_give: login_password,
+          },
+          success: (response) => {
+            console.log(response);
+            if (response.success) {
+              location.reload();
+            }
+          },
+        });
+      }
+
+      // 로그아웃 버튼
+      function logoutButton(e) {
+        $.ajax({
+          type: "post",
+          url: "/logout",
+          success: (response) => {
+            console.log(response);
+            if (response.success) {
+              location.reload();
+            }
+          },
+        });
+      }
+      // 회원등록 버튼
+      const registerButton = (e) => {
+        window.location.href = "/join_home";
+      };
+      // 대시보드 메뉴
+      const dashBoardButton = (e) => {
+        $(".home_menu").removeClass("hidden");
+        $(".my_record").addClass("hidden");
+      };
+      const recordButton = (e) => {
+        $(".home_menu").addClass("hidden");
+        $(".my_record").removeClass("hidden");
+      };
+
+      const rootStyles = window.getComputedStyle(document.documentElement);
+
+      const mainColorValue = rootStyles.getPropertyValue("--main-color");
+      const fontSizeValue = rootStyles.getPropertyValue("--font-size");
+
+      const fontSizeConverter = (className) => {
+        // 3. CSS 변수 값을 변경하기 위해 element.style.setProperty() 함수를 사용합니다.
+        const targetElement = document.querySelector(`.${className}`);
+        console.log(targetElement);
+        const height = $(window).height();
+        const width = $(window).width();
+        const font_size = targetElement.getPropertyValue("--font-size");
+        targetElement.style.setProperty("-color", "red");
+        targetElement.style.setProperty("--font-size", "100px");
+      };
+      // fontSizeConverter("font_large");
+
+      // 출근 / 퇴근 버튼 API
+
+      const exerciseStartAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_start",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(true);
+          },
+        });
+      };
+
+      const exerciseEndAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_end",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(false);
+          },
+        });
+      };
+
+      const exerciseStartEndMaker = (isStart) => {
+        $(".exercise_btn").empty();
+        if (!isStart) {
+          $(".exercise_btn").append(`                <button
+                  class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                  onclick="exerciseStartAPI(this)"
+                >
+                  GYM출근
+                </button>`);
+        } else {
+          $(".exercise_btn").append(
+            $(".exercise_btn").append(`                <button
+                  class="end_btn font_medium rounded-lg bg-red-600 text-white border-none w-full p-4 hover:outline-red-800 hover:outline-2 active:bg-red-800 transition"
+                  onclick="exerciseEndAPI(this)"
+                >
+                  GYM퇴근
+                </button>`),
+          );
+        }
+      };
+
+      // 테이블 랭킹
+      const rankingTable = () => {
+        // jinja2 받을 부분
+        const ranking_table = {
+          ranking: 1,
+          name: "김일일",
+          number_receive: 10,
+        };
+      };
+
+      const rankingTableAddRow = (rank, name, number_receive, add_type) => {
+        switch (add_type) {
+          case 0:
+            $(".ranking_table").append(`              <li class="flex py-5">
+                <div class="flex-1 content-center text-center">
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="nextMonthRanking(this)"
+                  >
+                    ◀
+                  </div>
+                  <p class="inline">3월 랭킹</p>
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="prevMonthRanking(this)"
+                  >
+                    ▶
+                  </div>
+                </div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">랭킹</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">이름</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">운동 일수</p>
+                  </div>
+                </div>
+              </li>`);
+            break;
+          case 1:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5">
+                <div class="flex-1 content-center text-center"></div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${name}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          case 2:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5 bg-[#eeeeee] rounded-[15px]">
+                <div class="flex-1 content-center text-center">나의 랭킹</div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          default:
+            "";
+            break;
+        }
+      };
+      const rankingSetting = () => {
+        $.ajax({
+          type: "get",
+          url: "",
+          data: {},
+          success: (response) => {
+            $(".ranking_table").empty();
+
+            rankingTableAddRow("");
+          },
+        });
+      };
+
+      // Chart
+      let nowPopularPeople = 0;
+      const popularHealthLocation = () => {
+        $.ajax({
+          type: "get",
+          url: "get_now_complex",
+          data: {},
+          success: (response) => {
+            nowPopularPeople = response.length;
+          },
+        });
+      };
+      const setPopularFunction = () => {
+        $.ajax({
+          type: "get",
+          url: "",
+          data: {},
+          success: (response) => {
+            const ctx = document.getElementById("myChart");
+            const last_date = popularHealthLocation();
+
+            dashboard_color_array = [
+              "from-[#038002]",
+              "from-red-600",
+              "from-yellow-400",
+            ];
+            for (i = 0; i < dashboard_color_array.length; i++) {
+              $(".dash_board_popular").removeClass(dashboard_color_array[i]);
+            }
+            if (last_date < 15) {
+              $(".dash_board_popular").addClass("from-[#038002]");
+            } else if (last_date >= 15 && last_date < 30) {
+              $(".dash_board_popular").addClass("from-yellow-600");
+            } else {
+              $(".dash_board_popular").addClass("from-red-600");
+            }
+            $(".total_excersize_number").text(last_date);
+            // 백엔드와 협의 필요
+            const day_array = Object.keys(request);
+            const people_array = [];
+            for (let i = 0; i < day_array.length; i++) {
+              people_array.push(response[day_array[i]]);
+            }
+
+            // "2016-10-20 17:23:00"
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: ["2026-03-05 00:00:00", "2026-03-05 24:00"],
+                datasets: [
+                  {
+                    label: "현재 인원",
+                    data: [
+                      { x: "2026-03-05 10:00:00", y: 12 },
+                      { x: "2026-03-05 11:00:00", y: 19 },
+                      { x: "2026-03-05 12:00:00", y: 7 },
+                    ],
+                    borderColor: "blue",
+                    borderWidth: 2,
+                  },
+                  {
+                    label: "과거 인원",
+                    data: [
+                      { x: "2026-03-05 10:00:00", y: 6 },
+                      { x: "2026-03-05 11:00:00", y: 9 },
+                      { x: "2026-03-05 12:00:00", y: 17 },
+                    ],
+                    borderColor: "red",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    type: "time",
+                    time: {
+                      unit: "hour",
+                      displayFormats: {
+                        hour: "HH",
+                      },
+                    },
+                    grid: {
+                      display: false,
+                    },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      display: false,
+                    },
+                    border: {
+                      display: false,
+                    },
+                  },
+                },
+              },
+            });
+          },
+        });
+      };
+
+      // render
+
+      const testRanking = [
+        { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "14" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "15" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "16" },
+      ];
+      $(".ranking_table").empty();
+      rankingTableAddRow(0, "", 0, 0);
+      const RankingKey = Object.keys(testRanking);
+      for (i = 0; i < (testRanking.length < 5 ? 5 : testRanking.length); i++) {
+        let rankingName = testRanking[i]["name"];
+        let number_receive = testRanking[i]["number_receive"];
+        let ranking = i + 1;
+        rankingTableAddRow(ranking, rankingName, number_receive, 1);
+      }
+      rankingTableAddRow(5, name, 5, 2);
+
+      const objToNow = (objId) => {
+        const dateFromObjectId = function (objectId) {
+          return new Date(parseInt(objectId.substring(0, 8), 16) * 1000);
+        };
+        return dateFromObjectId(objId);
+      };
+      let aka = 1;
+      $.ajax({
+        type: "get",
+        url: "/get_today_complex",
+        data: {},
+        success: (response) => {
+          console.log(response);
+        },
+      });
+      // $.ajax({
+      //   type: "get",
+      //   url: "/rank_month/3",
+      //   success: (response) => {
+      //     console.log(response);
+      //   },
+      // });
+      const ctx = document.getElementById("myChart");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["2026-03-05 00:00:00", "2026-03-05 24:00"],
+          datasets: [
+            {
+              label: "현재 인원",
+              data: [
+                { x: "2026-03-05 10", y: 12 },
+                { x: "2026-03-05 11", y: 19 },
+                { x: "2026-03-05 12", y: 7 },
+              ],
+              borderColor: "blue",
+              borderWidth: 2,
+            },
+            {
+              label: "과거 인원",
+              data: [
+                { x: "2026-03-05 10:00:00", y: 6 },
+                { x: "2026-03-05 11:00:00", y: 9 },
+                { x: "2026-03-05 12:00:00", y: 17 },
+              ],
+              borderColor: "red",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "hour",
+                displayFormats: {
+                  hour: "HH",
+                },
+              },
+              grid: {
+                display: false,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: false,
+              },
+              ticks: {
+                display: false,
+              },
+              border: {
+                display: false,
+              },
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
