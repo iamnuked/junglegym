@@ -273,6 +273,28 @@ def save_gymdata_by_1hour():
 threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 
 
+##############################################
+# 기록 관련 
+# 1. 전체 기록 클라이언트로 전송
+# 2. 기간 선택해서 클라이언트로 전송
+
+# 해당 유저 전체 기록 전송
+# id, start_datetime, end_datetime
+@app.route("/get_history", methods=["GET"])
+@jwt_required()
+def get_history():
+    current_user = get_jwt_identity()
+    user_history = use_history_collection.find({"id": current_user})
+    return jsonify(user_history)
+
+
+
+
+
+
+
+##############################################
+
 # 혼잡도 새로고침
 def refresh_complex():
     return gym_data_collection.find_one({"datetime": "now"})
