@@ -444,20 +444,26 @@ def get_history():
 def get_week_history():
     current_user = get_jwt_identity()
     start_jungle_date = datetime(2026, 3, 2)
-    user_history_list = list(use_history_collection.find({"id": current_user}))
+    # user_history_list = list(use_history_collection.find({"id": current_user}))
+    user_history_list = list(
+    use_history_collection.find({
+        "id": current_user,
+        "end_datetime": {"$ne": ""}
+    })
+)
     new_data = []
     for target in user_history_list:
-        diff = target["end_datetime"] - start_jungle_date
+        diff = (target["end_datetime"] - start_jungle_date).days
         week = diff // 7 + 1
-        day = diff % 7  # 요일
-        new_data.append(
-            {
-                "week": week,
-                "day": day,
-                "time": target["end_datetime"] - target["start_datetime"],
-            }
-        )
+        day = diff % 7 # 요일
 
+        use_time = (target["end_datetime"] - target["start_datetime"]).total_seconds() / 60
+
+        new_data.append({
+            "week": week,
+            "day": day,
+            "time": use_time
+        })
     return jsonify(new_data)
 
 
@@ -465,7 +471,13 @@ def get_week_history():
 @jwt_required()
 def get_month_history():
     current_user = get_jwt_identity()
-    user_history_list = list(use_history_collection.find({"id": current_user}))
+    # user_history_list = list(use_history_collection.find({"id": current_user}))
+    user_history_list = list(
+    use_history_collection.find({
+        "id": current_user,
+        "end_datetime": {"$ne": ""}
+    })
+)
 
     sum_time = defaultdict(int)
 

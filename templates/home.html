@@ -112,30 +112,29 @@
         </div>
         <!--나의 기록 메뉴-->
         <div class="my_record [100%] h-[100%] hidden">
-          <div
-          class="mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-white flex-7">
-          <!-- 그래프 튀지 않게 부모 높이 지정 -->
-          <div class="flex w-full gap-4 h-full">
-            <!-- 기록 버튼 영역-->
-            <div class="w-1/5 bg-white h-full flex justify-center items-center">
-              <div class="flex flex-col gap-15">
-                
-                <button id="btn-week"
-                  class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
-                  주간 기록
-                </button>
+          <div class="mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-white flex-7">
+            <!-- 그래프 튀지 않게 부모 높이 지정 -->
+            <div class="flex w-full gap-4 h-full">
+              <!-- 기록 버튼 영역-->
+              <div class="w-1/5 bg-white h-full flex justify-center items-center">
+                <div class="flex flex-col gap-15">
 
-                <button id="btn-month"
-                  class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
-                  월간 기록
-                </button>
+                  <button id="btn-week"
+                    class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
+                    주간 기록
+                  </button>
+
+                  <button id="btn-month"
+                    class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
+                    월간 기록
+                  </button>
+                </div>
+              </div>
+              <div class="bg-white h-[380px]">
+                <canvas id="periodChart" class="w-full h-full"></canvas>
               </div>
             </div>
-            <div class="bg-white h-[380px]"> 
-              <canvas id="periodChart" class="w-full h-full"></canvas>
-            </div>
           </div>
-        </div>
           <!-- 운동 기록 목록 -->
           <div class="history_table grid grid-cols-1 gap-4 mx-2 mt-2 p-4 outline-2 flex-8">
             <div class="flex items-center justify-between">
@@ -147,7 +146,7 @@
 
                 <div class="flex gap-2">
 
-                  <button class="bg-gray-100 hover:bg-gray-200 rounded-md h-10 px-3 text-sm">
+                  <button class="bg-gray-100 hover:bg-gray-200 rounded-md h-10 px-3 text-sm whitespace-nowrap">
                     전체 기간
                   </button>
 
@@ -357,6 +356,8 @@
       const recordButton = (e) => {
         $(".home_menu").addClass("hidden");
         $(".my_record").removeClass("hidden");
+        // 주간 기록 버튼 클릭 이벤트 실행
+        drawWeeklyChart();
       };
 
       const rootStyles = window.getComputedStyle(document.documentElement);
@@ -692,7 +693,7 @@
         };
         return dateFromObjectId(objId);
       };
-          
+
       // 주간,월간 그래프 교체하기
       const ctx = document.getElementById("periodChart");
       let chart = null;
@@ -713,15 +714,29 @@
           options: {
             responsive: true,
             plugins: {
-              tooltip: { enabled: true },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `운동시간: ${context.parsed.y} 분`;
+                  }
+                }
+              },
               legend: { display: true }
             },
             scales: {
-              y: { 
+              x: {
+                grid: {
+                  display: false
+                }
+              },
+              y: {
                 min: yMin,
                 max: yMax,
                 ticks: {
                   stepSize: stepSize
+                },
+                grid: {
+                  display: false
                 }
               }
             }
@@ -729,32 +744,64 @@
         });
       }
 
-      const weekly = {
-        labels: ["월","화","수","목","금","토","일"],
-        data: [1,2,3,4,5,4,3],
-        title: "운동시간(시?분?)",
-        type: "bar",
-        yMin: 0,
-        yMax: 5,
-        stepSize: 1
-      };
+      document.getElementById("btn-week").addEventListener("click", () => drawWeeklyChart());
+      document.getElementById("btn-month").addEventListener("click", () => drawMonthlyChart());
 
-      const monthly = {
-        labels: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
-        data: [50,100,70,150,200,170,200,300,240,240,0,50],
-        title: "운동시간(시?분?)",
-        type: "line",
-        yMin: 0,
-        yMax: 300, //아직 미정
-        stepSize: 50 //아직  미정
-      };
+      function drawWeeklyChart() {
+        $.ajax({
+          type: "GET",
+          url: "/get_week_history",
+          xhrFields: { withCredentials: true },
+          success: (response) => {
+            console.log(response)
+            const labels = ["월", "화", "수", "목", "금", "토", "일"];
+            const data = new Array(7).fill(0);
 
-    document.getElementById("btn-week").addEventListener("click", () => drawChart(weekly));
-    document.getElementById("btn-month").addEventListener("click", () => drawChart(monthly));
-      
-    // 첫 그래프는 주간그래프
-    drawChart(weekly);
-    setPopularFunction();
+            response.forEach(item => {
+              data[item.day] += item.time;
+            });
+
+            drawChart({
+              labels,
+              data,
+              title: "주간 운동시간(분)",
+              type: "bar",
+              yMin: 0,
+              yMax: Math.max(...data) + 10,
+              stepSize: 10
+            });
+
+          }
+        });
+      }
+
+      function drawMonthlyChart() {
+        $.ajax({
+          type: "GET",
+          url: "/get_month_history",
+          xhrFields: { withCredentials: true },
+          success: (response) => {
+            console.log(response)
+            const labels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+            const data = new Array(12).fill(0);
+
+            response.forEach(item => {
+              data[item.month - 1] = item.time;
+            });
+
+            drawChart({
+              labels,
+              data,
+              title: "월간 운동시간(분)",
+              type: "line",
+              yMin: 0,
+              yMax: Math.max(...data) + 10,
+              stepSize: 50
+            });
+
+          }
+        });
+      }
     </script>
 </body>
 
