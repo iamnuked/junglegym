@@ -238,7 +238,7 @@ def check_number(number_receive):
 
 
 def init_complex_count():
-    gym_data_collection.insert_one({"datetime": "now", "count": 0})
+    gym_data_collection.insert_one({"now": "now", "datetime": datetime.now(), "count": 0})
 
 
 # 짐 출근
@@ -253,7 +253,7 @@ def gym_start():
     }
 
     use_history_collection.insert_one(history)
-    gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": 1}})
+    gym_data_collection.update_one({"now": "now"}, {"$inc": {"count": 1}})
     return {"result": "success"}
 
 
@@ -266,7 +266,7 @@ def gym_end():
         {"id": current_user_id, "end_datetime": ""},
         {"$set": {"end_datetime": datetime.now()}},
     )
-    gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
+    gym_data_collection.update_one({"now": "now"}, {"$inc": {"count": -1}})
     return {"result": "success"}
 
 
@@ -338,10 +338,9 @@ def save_gymdata_by_1hour():
         now = datetime.now()
         if now.hour != last_hour:
             last_hour = now.hour
-            # 업데이트 코드 넣기
-            now_gym_data = gym_data_collection.find_one({"datetime": "now"})
-            now_gym_data[datetime] = datetime.now()
-            gym_data_collection.insert_one(now_gym_data)
+            now_gym_count = gym_data_collection.find_one({"now": "now"})
+            gym_data_collection.update_one({"now": "now"}, {"$set": ""})
+            gym_data_collection.insert_one({"now": "now", "datetime" : datetime.now(), "count": now_gym_count["count"]})
         time.sleep(60)  # 60초
 
 
@@ -367,8 +366,31 @@ def get_history():
     return jsonify(list(user_history))
 
 
-# 혼잡도 데이터 전송 관련
 
+# 3월 2일 월요일
+# 주간 기록 작성중
+@app.route("/get_week_history", method=["GET"])
+@jwt_required()
+def get_week_history():
+    current_user = get_jwt_identity()
+    start_jungle_date = datetime(2026, 3, 2)
+    user_history_list = list(use_history_collection.find({"id": current_user}))
+    new_data = []
+    for target in user_history_list["datetime"]:
+        diff = target - start_jungle_date
+        week = diff // 7 + 1
+        day = diff % 7
+
+
+
+
+
+
+
+
+
+
+# 혼잡도 데이터 전송 관련
 
 @app.route("/get_now_complex", methods=["GET"])
 def get_now_complex():
