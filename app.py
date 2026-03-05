@@ -13,6 +13,7 @@ from bson import ObjectId
 import json
 import sys
 from collections import defaultdict
+import math
 
 load_dotenv()
 
@@ -29,6 +30,8 @@ class CustomJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
             return str(o)
+        if isinstance(o, datetime):
+            return o.isoformat()
         return json.JSONEncoder.default(self, o)
 
 
@@ -52,6 +55,11 @@ client = MongoClient(os.environ.get("MONGO_URI"), 27017)
 db = client["junglegym"]
 user_collection = db["USER"]
 use_history_collection = db["USE_HISTORY"]
+# 최신순을 기준으로 주로 사용할 것이기 때문
+use_history_collection.create_index([
+    ("id", 1),
+    ("start_datetime", -1)
+])
 gym_data_collection = db["GYM_DATA"]
 rank_data_collection = db["RANK_DATA"]
 
@@ -90,6 +98,14 @@ def invalid_token_callback(callback):
 @app.route("/")
 def home():
     user = None
+    # 페이지네이션 필요한 데이터
+    # 현재 페이지, 전체 데이터 개수, 전체 페이지 수
+    history = []
+
+    page = int(request.args.get("page", 1))
+    per_page = 5
+    total_pages = 0
+    has_next = False
 
     try:
         verify_jwt_in_request()
@@ -99,10 +115,29 @@ def home():
 
         if user_data:
             user = {"id": user_data["id"], "name": user_data["name"]}
+
+            # 운동 기록 처음에 띄울 5개 데이터
+            total_count = use_history_collection.count_documents(
+                {"id": user_id}
+            )
+
+            total_pages = math.ceil(total_count / per_page)
+
+            has_next = page < total_pages
+
+            skip_count = (page - 1) * per_page
+
+            history = list(
+                use_history_collection.find({"id": user_id})
+                .sort("start_datetime", -1)
+                .skip(skip_count)
+                .limit(per_page)
+            )
     except:
         user = None
-    return render_template("home.html", user=user)
-
+        history = []
+    print(history)
+    return render_template("home.html", user=user, history=history, page=page, total_pages=total_pages, has_next=has_next)
 
 @app.route("/join_home")
 def joinhome():
@@ -262,12 +297,19 @@ def gym_start():
 @jwt_required()
 def gym_end():
     current_user_id = get_jwt_identity()
-    use_history_collection.update_one(
+    active_history = use_history_collection.find_one(
         {"id": current_user_id, "end_datetime": ""},
+        sort=[("start_datetime", -1)]
+    )
+    if active_history:
+        use_history_collection.update_one(
+        {"_id": active_history["_id"]},
         {"$set": {"end_datetime": datetime.now()}},
     )
-    gym_data_collection.update_one({"now": "now"}, {"$inc": {"count": -1}})
-    return {"result": "success"}
+        gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
+        return {"result": "success"}
+    else:
+        return{"result" : "no_active_data"}
 
 
 @app.route("/delete", methods=["POST"])
@@ -356,22 +398,44 @@ threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 # 2. 기간 선택해서 클라이언트로 전송
 
 
-# 해당 유저 전체 기록 전송
+# 해당 유저 전체 기록 전송 - 페이지네이션
 # id, start_datetime, end_datetime
 @app.route("/get_history", methods=["GET"])
 @jwt_required()
 def get_history():
     current_user = get_jwt_identity()
-    user_history = use_history_collection.find({"id": current_user})
-    return jsonify(list(user_history))
+    # user_history = use_history_collection.find({"id": current_user})
+    # return jsonify(user_history)
+    page = int(request.args.get("page", 1))
+    per_page = 5
 
+    total_count = use_history_collection.count_documents(
+        {"id": current_user}
+    )
+
+    total_pages = max(1, math.ceil(total_count / per_page))
+
+    skip_count = (page - 1) * per_page
+
+    history = list(
+        use_history_collection.find({"id": current_user})
+        .sort([("start_datetime", -1), ("_id",-1)])
+        .skip(skip_count)
+        .limit(per_page)
+    )
+
+    return jsonify({
+        "history": history,
+        "page": page,
+        "total_pages": total_pages
+    })
 
 
 # 3월 2일 월요일
 # 주간 기록 작성중
 # day값에서  ( 0, 1, 2 ~ 6 ) 는 ( 월, 화, 수 ~ 일 ) 을 의미함
 # new_data값은 주, 요일, 운동 시간이 들어감
-@app.route("/get_week_history", method=["GET"])
+@app.route("/get_week_history", methods=["GET"])
 @jwt_required()
 def get_week_history():
     current_user = get_jwt_identity()
