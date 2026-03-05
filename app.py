@@ -157,7 +157,6 @@ def check_number(number_receive):
 
 
 
-
 # 짐 출근
 @app.route("/gym_start", methods=["POST"])
 @jwt_required()
@@ -170,12 +169,11 @@ def gym_start():
     }
 
     use_history_collection.insert_one(history)
-
     gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": 1}})
 
 
 # 짐 퇴근
-@app.route("/gym_end", methods=["GET"])
+@app.route("/gym_end", methods=["POST"])
 @jwt_required()
 def gym_end():
     current_user_id = get_jwt_identity()
