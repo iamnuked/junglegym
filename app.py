@@ -472,7 +472,7 @@ def get_month_history():
     for month, time in sum_time.items():
         new_data.append({"month": month, "time": time})
 
-    return jsonify()
+    return jsonify(new_data)
 
 
 
