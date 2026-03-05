@@ -74,12 +74,9 @@ def home():
 def joinhome():
     return render_template("join.html")
 
-<<<<<<< HEAD
-=======
 @app.route("/dev/home")
 def go_dev_home():
     return render_template("home3.html")
->>>>>>> bbef4c159f618d81d2c19d6eb2523d15b0b9e059
 
 @app.route("/edit")
 @jwt_required()
@@ -203,6 +200,8 @@ def check_gen(gen_receive):
 def check_number(number_receive):
     return int(number_receive) < 1 or int(number_receive) > 200
 
+def init_complex_count():
+    gym_data_collection.insert_one({"datetime": "now", "count": 0})
 
 # 짐 출근
 @app.route("/gym_start", methods=["POST"])
@@ -211,7 +210,7 @@ def gym_start():
     current_user = get_jwt_identity()
     history = {
         "id": current_user,
-        "start_datetime": datetime.now().strftime("%Y-%m-%d %H"),
+        "start_datetime": datetime.now(),
         "end_datetime": "",
     }
 
@@ -227,7 +226,7 @@ def gym_end():
     current_user_id = get_jwt_identity()
     use_history_collection.update_one(
         {"id": current_user_id, "end_datetime": ""},
-        {"$set": {"end_datetime": datetime.now().strftime("%Y-%m-%d %H")}},
+        {"$set": {"end_datetime": datetime.now()}},
     )
     gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
     return {"result": "success"}
@@ -303,7 +302,7 @@ def save_gymdata_by_1hour():
             last_hour = now.hour
             # 업데이트 코드 넣기
             now_gym_data = gym_data_collection.find_one({"datetime": "now"})
-            now_gym_data[datetime] = datetime.now().strftime("%Y-%m-%d %H")
+            now_gym_data[datetime] = datetime.now()
             gym_data_collection.insert_one(now_gym_data)
         time.sleep(60)  # 60초
 
