@@ -20,6 +20,7 @@
       <div class="flex-2 flex flex-col">
         <div class="outline-2 rounded-[15px] space-y-7 flex-1">
           <!-- 로그인 전에 보일 부분 -->
+          {% if not user %}
           <div class="login_pannel space-y-4" id="login_section">
             <input type="text" placeholder="ID"
               class="login_id_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition" />
@@ -36,25 +37,32 @@
               회원가입 후 운동기록하기
             </button>
           </div>
+          {% endif %}
           <!-- 로그인 후에 보일 부분 -->
-          <div class="login_pannel space-y-6" id="user_section" style="display:none;">
+          {% if user %}
+          <div class="login_pannel space-y-6" id="user_section">
             <div class="flex items-start justify-between">
 
               <!-- 왼쪽 텍스트 -->
-              <span id="txt_welcome" class="leading-relaxed text-black"></span>
+              <span id="txt_welcome" class="leading-relaxed text-black">
+                {{ user.name }}님의<br>
+                건강한 정글 생활을 응원합니다
+              </span>
 
               <!-- 오른쪽 버튼 -->
-              <button class="flex-shrink-0">
-                <img src="{{ url_for('static', filename='icons/setting.svg') }}" class="w-6 h-6">
-              </button>
+              <a href="/edit" class="flex-shrink-0">
+                <img src="{{ url_for('static', filename='icons/edit.svg') }}" class="w-6 h-6">
+              </a>
             </div>
             <button
               class="font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition">
               GYM출근
             </button>
-            <button>로그아웃</button>
+            <button class="w-full text-center underline" onclick="logoutButton(this)">
+              로그아웃
+            </button>
           </div>
-
+          {% endif %}
           <!-- 메뉴 -->
           <div class="login_pannel space-y-6" id="menu_section">
             <button
@@ -135,14 +143,24 @@
         success: (response) => {
           console.log(response);
           if (response.success) {
-            $("#login_section").hide();
-            $("#user_section").show();
-
-            $("#txt_welcome").html(`${response.name}님의<br>건강한 정글 생활을 응원합니다`);
+            location.reload();
           }
         },
       });
     };
+
+    function logoutButton(e) {
+      $.ajax({
+        type: "post",
+        url: "/logout",
+        success: (response) => {
+          console.log(response);
+          if (response.success) {
+            location.reload();
+          }
+        },
+      });
+    }
     const registerButton = (e) => {
       console.log(e);
     };
