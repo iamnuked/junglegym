@@ -4,7 +4,9 @@ from flask_jwt_extended import *
 import os
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import timedelta
+from datetime import timedelta, datetime
+import threading
+import time
 
 load_dotenv()
 
@@ -13,6 +15,8 @@ load_dotenv()
 client = MongoClient(os.environ.get("MONGO_URI"), 27017)
 db = client["junglegym"]
 user_collection = db["USER"]
+use_history_collection = db["USE_HISTORY"]
+gym_data_collection = db["GYM_DATA"]
 
 
 app = Flask(__name__)
@@ -151,6 +155,42 @@ def check_number(number_receive):
     return int(number_receive) < 1 or int(number_receive) > 200
 
 
+
+# 1시간 간격 혼잡도 데이터 저장 -> 몽고db Change Streams 사용?
+def save_complex_data():
+    gym_data_collection.insert_one({"datetime": datetime.now().strftime("%Y-%m-%d %H:%M (%A)")})
+
+
+
+
+# 짐 출근
+@app.route("/gym_start", methods=["POST"])
+@jwt_required()
+def gym_start():
+    current_user = get_jwt_identity()
+    history = {
+        "id": current_user,
+        "start_datetime": datetime.now(),
+        "end_datetime": "",
+    }
+
+    use_history_collection.insert_one(history)
+
+    gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": 1}})
+
+
+# 짐 퇴근
+@app.route("/gym_end", methods=["GET"])
+@jwt_required()
+def gym_end():
+    current_user_id = get_jwt_identity()
+    use_history_collection.update_one({
+            "id": current_user_id, "end_datetime": ""},
+            {"$set": {"end_datetime": datetime.now()}
+         })
+    gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
+
+
                  
 
 
@@ -221,6 +261,22 @@ def logout():
     response = redirect('/')
     unset_jwt_cookies(response)
     return response
+# 혼잡도 기록 저장 관련 루프문
+def save_gymdata_by_1hour():
+    last_hour = datetime.now().hour
+    while True:
+        now = datetime.now()
+        if now.hour != last_hour:
+            last_hour = now.hour
+            # 업데이트 코드 넣기
+        time.sleep(60) #60초
+threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
+
+# 혼잡도 새로고침
+def refresh_complex():
+    return gym_data_collection.find_one({"datetime": "now"})
+
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=os.environ.get("PORT", 5000), debug=True)
