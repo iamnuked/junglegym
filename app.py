@@ -579,7 +579,7 @@ def get_month_rank(month):
 
 # 혼잡도 새로고침
 def refresh_complex():
-    return gym_data_collection.find_one({"datetime": "now"})
+    return gym_data_collection.find_one({"now": "now"})
 
 
 if __name__ == "__main__":
