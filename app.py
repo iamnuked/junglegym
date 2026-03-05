@@ -45,7 +45,7 @@ def invalid_token_callback(callback):
 
 @app.route("/")
 def home():
-    return render_template("login.html")
+    return render_template("home.html")
 
 
 @app.route("/join_home")
