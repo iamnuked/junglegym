@@ -361,14 +361,25 @@
       };
 
       // Chart
+      let nowPopularPeople = 0;
+      const popularHealthLocation = () => {
+        $.ajax({
+          type: "get",
+          url: "get_now_complex",
+          data: {},
+          success: (response) => {
+            nowPopularPeople = response.length;
+          },
+        });
+      };
       const setPopularFunction = () => {
-        $().ajax({
+        $.ajax({
           type: "get",
           url: "",
           data: {},
           success: (response) => {
             const ctx = document.getElementById("myChart");
-            const last_date = 12;
+            const last_date = popularHealthLocation();
 
             dashboard_color_array = [
               "from-[#038002]",
@@ -397,12 +408,27 @@
             new Chart(ctx, {
               type: "line",
               data: {
-                labels: day_array,
+                labels: ["2026-03-05 00:00:00", "2026-03-05 24:00"],
                 datasets: [
                   {
-                    label: "# of Votes",
-                    data: people_array,
-                    borderWidth: 1,
+                    label: "현재 인원",
+                    data: [
+                      { x: "2026-03-05 10:00:00", y: 12 },
+                      { x: "2026-03-05 11:00:00", y: 19 },
+                      { x: "2026-03-05 12:00:00", y: 7 },
+                    ],
+                    borderColor: "blue",
+                    borderWidth: 2,
+                  },
+                  {
+                    label: "과거 인원",
+                    data: [
+                      { x: "2026-03-05 10:00:00", y: 6 },
+                      { x: "2026-03-05 11:00:00", y: 9 },
+                      { x: "2026-03-05 12:00:00", y: 17 },
+                    ],
+                    borderColor: "red",
+                    borderWidth: 2,
                   },
                 ],
               },
@@ -415,12 +441,24 @@
                     time: {
                       unit: "hour",
                       displayFormats: {
-                        hour: "H:mm",
+                        hour: "HH",
                       },
+                    },
+                    grid: {
+                      display: false,
                     },
                   },
                   y: {
                     beginAtZero: true,
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      display: false,
+                    },
+                    border: {
+                      display: false,
+                    },
                   },
                 },
               },
@@ -429,65 +467,8 @@
         });
       };
 
-      const ctx = document.getElementById("myChart");
-      new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: ["2026-03-05 00:00:00", "2026-03-05 23:59:00"],
-          datasets: [
-            {
-              label: "현재 인원",
-              data: [
-                { x: "2026-03-05 10:00:00", y: 12 },
-                { x: "2026-03-05 11:00:00", y: 19 },
-                { x: "2026-03-05 12:00:00", y: 7 },
-              ],
-              borderColor: "blue",
-              borderWidth: 2,
-            },
-            {
-              label: "과거 인원",
-              data: [
-                { x: "2026-03-05 10:00:00", y: 6 },
-                { x: "2026-03-05 11:00:00", y: 9 },
-                { x: "2026-03-05 12:00:00", y: 17 },
-              ],
-              borderColor: "red",
-              borderWidth: 2,
-            },
-          ],
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              type: "time",
-              time: {
-                unit: "hour",
-                displayFormats: {
-                  hour: "H:mm",
-                },
-              },
-              grid: {
-                display: false,
-              },
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                display: false,
-              },
-              ticks: {
-                display: false,
-              },
-              border: {
-                display: false,
-              },
-            },
-          },
-        },
-      }); // render
+      // render
+
       const testRanking = [
         { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
         { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
@@ -505,6 +486,29 @@
         rankingTableAddRow(ranking, rankingName, number_receive, 1);
       }
       rankingTableAddRow(5, name, 5, 2);
+
+      const objToNow = (objId) => {
+        const dateFromObjectId = function (objectId) {
+          return new Date(parseInt(objectId.substring(0, 8), 16) * 1000);
+        };
+        return dateFromObjectId(objId);
+      };
+      let aka = 1;
+      $.ajax({
+        type: "get",
+        url: "/get_now_complex",
+        data: {},
+        success: (response) => {
+          console.log(response);
+        },
+      });
+      // $.ajax({
+      //   type: "get",
+      //   url: "/rank_month/3",
+      //   success: (response) => {
+      //     console.log(response);
+      //   },
+      // });
     </script>
   </body>
 </html>

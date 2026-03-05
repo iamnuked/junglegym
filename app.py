@@ -18,6 +18,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
+
 #####################################################################################
 # 이 부분은 코드를 건드리지 말고 그냥 두세요. 코드를 이해하지 못해도 상관없는 부분입니다.
 #
@@ -107,9 +108,11 @@ def home():
 def joinhome():
     return render_template("join.html")
 
+
 @app.route("/dev/home")
 def go_dev_home():
     return render_template("home3.html")
+
 
 @app.route("/edit")
 @jwt_required()
@@ -233,8 +236,10 @@ def check_gen(gen_receive):
 def check_number(number_receive):
     return int(number_receive) < 1 or int(number_receive) > 200
 
+
 def init_complex_count():
     gym_data_collection.insert_one({"datetime": "now", "count": 0})
+
 
 # 짐 출근
 @app.route("/gym_start", methods=["POST"])
@@ -364,21 +369,22 @@ def get_history():
 
 # 혼잡도 데이터 전송 관련
 
+
 @app.route("/get_now_complex", methods=["GET"])
 def get_now_complex():
     now_complex_data = gym_data_collection.find({"datetime": "now"})
+
     return jsonify(now_complex_data)
 
+
 @app.route("/get_today_complex", methods=["GET"])
-def get_totad_complex():
+def get_today_complex():
     start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
-    today_complex_data = gym_data_collection.find({"datetime": {
-        "$gte": start,
-        "$lt": end
-    }})
-    return jsonify(today_complex_data)
-
+    today_complex_data = gym_data_collection.find(
+        {"datetime": {"$gte": start, "$lt": end}}
+    )
+    return jsonify(list(today_complex_data))
 
 
 ######################
@@ -389,30 +395,32 @@ def get_totad_complex():
 
 #     })
 
+
 # 전체 기록 하루 중복 제거
 def total_use_days_data():
-    total_use_days_data = list(db.USE_HISTORY.aggregate([
-  {
-    "$group": {
-      "_id": {
-        "id": "$id",
-        "date": {
-          "$dateToString": {
-            "format": "%Y-%m-%d",
-            "date": "$start_datetime"
-          }
-        }
-      },
-      "doc": { "$first": "$$ROOT" }
-    }
-  },
-  {
-    "$replaceRoot": {
-      "newRoot": "$doc"
-    }
-  }
-]))
+    total_use_days_data = list(
+        db.USE_HISTORY.aggregate(
+            [
+                {
+                    "$group": {
+                        "_id": {
+                            "id": "$id",
+                            "date": {
+                                "$dateToString": {
+                                    "format": "%Y-%m-%d",
+                                    "date": "$start_datetime",
+                                }
+                            },
+                        },
+                        "doc": {"$first": "$$ROOT"},
+                    }
+                },
+                {"$replaceRoot": {"newRoot": "$doc"}},
+            ]
+        )
+    )
     return total_use_days_data
+
 
 # 달별 유저 헬스 이용 데이터 (같은날 중복 제거)
 def month_use_days_data(month):
@@ -421,13 +429,13 @@ def month_use_days_data(month):
     for doc in data:
         if doc["start_datetime"].month == month:
             result.append(doc)
-    
+
     return result
 
-# 이번 달 전체 랭킹 반환
-@app.route("/rank_month<int:month>", methods=["GET"])
-def get_month_rank(month):
 
+# 이번 달 전체 랭킹 반환
+@app.route("/rank_month/<int:month>", methods=["GET"])
+def get_month_rank(month):
     data = month_use_days_data(month)
     user_count = defaultdict(int)
 
@@ -437,25 +445,15 @@ def get_month_rank(month):
         user_count[user_id] += 1
 
     # 출석일수 기준 정렬
-    sorted_users = sorted(
-        user_count.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
+    sorted_users = sorted(user_count.items(), key=lambda x: x[1], reverse=True)
 
     result = []
 
     # 랭킹 생성
     for rank, (user_id, count) in enumerate(sorted_users, start=1):
-        result.append({
-            "rank": rank,
-            "id": user_id,
-            "days": count
-        })
+        result.append({"rank": rank, "id": user_id, "days": count})
 
-    return result
-    
-
+    return jsonify(result)
 
 
 ##############################################
