@@ -369,6 +369,8 @@ def get_history():
 
 # 3월 2일 월요일
 # 주간 기록 작성중
+# day값에서  ( 0, 1, 2 ~ 6 ) 는 ( 월, 화, 수 ~ 일 ) 을 의미함
+# new_data값은 주, 요일, 운동 시간이 들어감
 @app.route("/get_week_history", method=["GET"])
 @jwt_required()
 def get_week_history():
@@ -376,11 +378,13 @@ def get_week_history():
     start_jungle_date = datetime(2026, 3, 2)
     user_history_list = list(use_history_collection.find({"id": current_user}))
     new_data = []
-    for target in user_history_list["datetime"]:
-        diff = target - start_jungle_date
+    for target in user_history_list:
+        diff = target["end_datetime"] - start_jungle_date
         week = diff // 7 + 1
-        day = diff % 7
-
+        day = diff % 7 # 요일
+        new_data.append({"week": week, "day": day, "time": target["end_datetime"] - target["start_datetime"]})
+    
+    return jsonify(new_data)
 
 
 
