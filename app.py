@@ -15,7 +15,7 @@ import sys
 
 load_dotenv()
 
-
+app = Flask(__name__)
 
 #####################################################################################
 # 이 부분은 코드를 건드리지 말고 그냥 두세요. 코드를 이해하지 못해도 상관없는 부분입니다.
@@ -53,8 +53,6 @@ use_history_collection = db["USE_HISTORY"]
 gym_data_collection = db["GYM_DATA"]
 rank_data_collection = db["RANK_DATA"]
 
-
-app = Flask(__name__)
 # 우선 access token만 사용, 유효기간 2시간 설정 -> 추후 가능하면 refresh token 구현
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
