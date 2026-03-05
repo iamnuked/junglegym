@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash
 from pymongo import MongoClient
 import os
 
-# 1️⃣ USER 컬렉션 생성
+# USER 생성
 user_list = []
 used_number_receive = set()
 
@@ -49,84 +49,70 @@ for i in range(1, 101):
     }
     user_list.append(user)
 
-# 2️⃣ USE_HISTORY 컬렉션 생성
+# USE_HISTORY 생성
 use_history_list = []
 
 historyConfigure = [1, 2, 3]
 gym_data_list = []
+location_setting = set()
+now = datetime.now()
+# 거점 만들기
+for i in range(100):
+    day = random.randint(1, 28)
+    hour = random.randint(6, 20)
+    minute = random.randint(0, 59)
+    month = historyConfigure[random.randint(0, len(historyConfigure) - 1)]
+    start = datetime(
+        2026,
+        month,
+        day,
+        hour,
+        minute,
+    )
+    if now < start:
+        continue
+    location_setting.add(start)
+location_setting.add(now)
+location_setting = sorted(list(location_setting), reverse=True)
 
 
-for user in user_list:
-    for month in historyConfigure:
-        num_sessions = random.randint(1, random.randint(4, 10))  # 1~5회 운동 기록
-        for _ in range(num_sessions):
-            day = random.randint(1, 28)
-            hour = random.randint(6, 20)
-            minute = random.randint(0, 59)
-            month == datetime.now().month
-            hour == datetime.now().hour
+# GYM_DATA 생성
+now_count = 30
+shuffled_user = user_list
+for gym_datetime in location_setting:  # 6시~21시
+    random.shuffle(shuffled_user)
 
-            start = datetime(
-                2026,
-                month,
-                day,
-                hour,
-                minute,
+    count = random.randint(6, 35)
+
+    # start = now - timedelta(minutes=duration_minutes)
+    if gym_datetime == now:
+        gym_data_list.append({"datetime": gym_datetime, "count": count, "now": "now"})
+        for i in range(count):
+            duration_minutes = random.randint(20, 40)
+            minus_duration = random.randint(0, duration_minutes - 1)
+            use_history_list.append(
+                {
+                    "id": shuffled_user[i]["id"],
+                    "start_datetime": gym_datetime - timedelta(minutes=minus_duration),
+                    "end_datetime": "",
+                }
             )
-            duration_minutes = random.randint(30, 90)
-            end = start + timedelta(minutes=duration_minutes)
-            if datetime.now().month == month:
-                if user["id"] not in stack_data:
-                    stack_data[user["id"]] = 1
-                else:
-                    stack_data[user["id"]] += 1
 
-            if end > datetime.now():
-                continue
-                # gym_data_list.append({"datetime": "now", "count": random.randint(1, 28)})
-                # end == 1
-                # use_history_list.append(
-                #     {"id": user["id"], "start_datetime": start}
-                # )
-            else:
+    else:
+        gym_data_list.append({"datetime": gym_datetime, "count": count, "now": ""})
+        for i in range(count):
+            duration_minutes = random.randint(20, 40)
+            minus_duration = random.randint(0, duration_minutes - 1)
+            use_history_list.append(
+                {
+                    "id": shuffled_user[i]["id"],
+                    "start_datetime": gym_datetime - timedelta(minutes=minus_duration),
+                    "end_datetime": gym_datetime
+                    + timedelta(minutes=duration_minutes)
+                    - timedelta(minutes=minus_duration),
+                }
+            )
 
-                datetime(year=start.year, month=start.month, day=start.day, hour=hour)
-                (end - start)
-                (
-                    datetime(year=2026, month=3, day=2, hour=2)
-                    - datetime(year=2026, month=3, day=2, hour=1)
-                ).seconds // 3600
-                use_history_list.append(
-                    {"id": user["id"], "start_datetime": start, "end_datetime": end}
-                )
-
-# 3️⃣ GYM_DATA 컬렉션 생성
-
-# shuffled_user = user_list
-# random.shuffle(shuffled_user)
-
-# for hour_offset in range(30):  # 6시~21시
-
-#     count = random.randint(1, datetime.now().day)
-
-#     now = datetime.now()
-
-#     duration_minutes = random.randint(2, 60)
-#     start = now - timedelta(minutes=duration_minutes)
-#     use_history_list.append(
-#         {
-#             "id": shuffled_user[hour_offset]["id"],
-#             "start_datetime": start,
-#         }
-#     )
-#     dt = "now"
-#     gym_data_list.append({"datetime": datetime(), "count": count, "now": ""})
-gym_data_list.append(
-    {"datetime": datetime(year=2026, month=3, day=4, hour=5), "count": 12, "now": ""}
-)
-gym_data_list.append(
-    {"datetime": datetime.now() - timedelta(seconds=300), "count": 30, "now": "now"}
-)
 
 # 출력 확인
 print("USER sample:", user_list[:3])
