@@ -191,16 +191,16 @@
 
               <!-- 이전 버튼 -->
               {% if page > 1 %}
-              <button onclick="loadHistoryPage({{ page-1 }})" class="px-3 py-1 bg-gray-200 rounded">
+              <button onclick="loadHistoryPage({{ page-1 }})" class="px-3 py-1">
                 < </button>
                   {% endif %}
 
-                  <span class="px-3 py-1 bg-blue-600 text-white rounded">
+                  <span class="px-3 py-1 text-gray-800">
                     {{ page }}
                   </span>
 
                   {% if page < total_pages %} <button onclick="loadHistoryPage({{ page+1 }})"
-                    class="px-3 py-1 bg-gray-200 rounded">
+                    class="px-3 py-1">
                     >
               </button>
               {% endif %}
@@ -229,7 +229,7 @@
             console.log(response);
             if (response.success) {
               location.reload();
-            } else {alert(response["result"])}
+            } else { alert(response["result"]) }
           },
         });
       }
@@ -305,14 +305,15 @@
         if (page > 1) {
           pagination += `
       <button onclick="loadHistoryPage(${page - 1})"
-        class="px-3 py-1 bg-gray-200 rounded">
+        class="px-3 py-1">
         <
       </button>
     `;
         }
 
         pagination += `
-    <span class="px-3 py-1 bg-blue-600 text-white rounded">
+
+    <span class="px-3 py-1 text-gray-800">
       ${page}
     </span>
   `;
@@ -320,7 +321,7 @@
         if (page < total_pages) {
           pagination += `
       <button onclick="loadHistoryPage(${page + 1})"
-        class="px-3 py-1 bg-gray-200 rounded">
+        class="px-3 py-1">
         >
       </button>
     `;
@@ -403,6 +404,7 @@
           },
           success: (response) => {
             exerciseStartEndMaker(false);
+            location.reload();
           },
         });
       };
@@ -545,55 +547,55 @@
       let now_count = 0;
       let now_date_time = "";
       let total_list = [];
-      
+
       const setPopularFunction = () => {
         $.ajax({
-          type:"get",
-          url:"/get_now_complex",
-          data:{},
-          success: (response)=>{
+          type: "get",
+          url: "/get_now_complex",
+          data: {},
+          success: (response) => {
             now_count = response[0]["count"]
             now_date_time = response[0]["datetime"]
             $(".total_exercize_number").text(now_count)
           }
         })
         const last_date = $(".total_exercize_number").text();
-            dashboard_color_array = [
-              "from-[#038002]",
-              "from-red-600",
-              "from-yellow-400",
-            ];
-            dashboard_text_color_array = [
-              "text-white",
-              "text-black",
-              "font-bold"
-            ]
-            for (i = 0; i < dashboard_color_array.length; i++) {
-              $(".dash_board_popular").removeClass(dashboard_color_array[i]);
-            }
-            for (i = 0; i < dashboard_text_color_array.length; i++) {
-              $(".gym_status").removeClass(dashboard_text_color_array[i])
-            };
-            if (last_date < 15) {
-              $(".dash_board_popular").addClass("from-[#038002]");
-              
-              $(".gym_status").text("원할").addClass("text-white")
-            } else if (last_date >= 15 && last_date < 30) {
-              $(".dash_board_popular").addClass("from-yellow-600");
-              
-            $(".gym_status").text("다소혼잡").addClass("text-black")
+        dashboard_color_array = [
+          "from-[#038002]",
+          "from-red-600",
+          "from-yellow-400",
+        ];
+        dashboard_text_color_array = [
+          "text-white",
+          "text-black",
+          "font-bold"
+        ]
+        for (i = 0; i < dashboard_color_array.length; i++) {
+          $(".dash_board_popular").removeClass(dashboard_color_array[i]);
+        }
+        for (i = 0; i < dashboard_text_color_array.length; i++) {
+          $(".gym_status").removeClass(dashboard_text_color_array[i])
+        };
+        if (last_date < 15) {
+          $(".dash_board_popular").addClass("from-[#038002]");
 
-            } else {
-              $(".dash_board_popular").addClass("from-red-600");
-              $(".gym_status").text("혼잡").addClass("font-bold").addClass("text-white")
-            }
+          $(".gym_status").text("원할").addClass("text-white")
+        } else if (last_date >= 15 && last_date < 30) {
+          $(".dash_board_popular").addClass("from-yellow-600");
+
+          $(".gym_status").text("다소혼잡").addClass("text-black")
+
+        } else {
+          $(".dash_board_popular").addClass("from-red-600");
+          $(".gym_status").text("혼잡").addClass("font-bold").addClass("text-white")
+        }
 
 
         $.ajax({
-          type:"get",
-          url:"/get_today_complex",
-          data:{},
-          success:(response)=>{
+          type: "get",
+          url: "/get_today_complex",
+          data: {},
+          success: (response) => {
             const ctx = document.getElementById("myChart");
 
             console.log(response)
@@ -607,11 +609,11 @@
 
             // "2016-10-20 17:23:00"
             present_dataset = []
-            for(let i=0;i<response.length;i++) {
+            for (let i = 0; i < response.length; i++) {
               data = response[i];
               x = "2026-03-02 " + data["datetime"].split("T")[1].split(":")[0];
               y = data["count"]
-              present_dataset.push({x:x,y:y})
+              present_dataset.push({ x: x, y: y })
             }
             new Chart(ctx, {
               type: "line",
