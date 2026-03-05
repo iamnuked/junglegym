@@ -674,6 +674,68 @@
       //     console.log(response);
       //   },
       // });
+          
+      // 주간,월간 그래프 교체하기
+      const ctx = document.getElementById("periodChart");
+      let chart = null;
+
+      function drawChart({ labels, data, title, type, yMin = 0, yMax, stepSize }) {
+        // 기존 차트 제거하고 다음 그래프 그리기
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+          type,
+          data: {
+            labels,
+            datasets: [{
+              label: title,
+              data
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              tooltip: { enabled: true },
+              legend: { display: true }
+            },
+            scales: {
+              y: { 
+                min: yMin,
+                max: yMax,
+                ticks: {
+                  stepSize: stepSize
+                }
+              }
+            }
+          }
+        });
+      }
+
+      const weekly = {
+        labels: ["월","화","수","목","금","토","일"],
+        data: [1,2,3,4,5,4,3],
+        title: "운동시간(시?분?)",
+        type: "bar",
+        yMin: 0,
+        yMax: 5,
+        stepSize: 1
+      };
+
+      const monthly = {
+        labels: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+        data: [50,100,70,150,200,170,200,300,240,240,0,50],
+        title: "운동시간(시?분?)",
+        type: "line",
+        yMin: 0,
+        yMax: 300, //아직 미정
+        stepSize: 50 //아직  미정
+      };
+
+    document.getElementById("btn-week").addEventListener("click", () => drawChart(weekly));
+    document.getElementById("btn-month").addEventListener("click", () => drawChart(monthly));
+
+    // 첫 그래프는 주간그래프
+    drawChart(weekly);
     </script>
 </body>
 
