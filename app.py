@@ -451,7 +451,7 @@ def get_week_history():
     return jsonify(new_data)
 
 
-@app.route("/get_month_history", method=["GET"])
+@app.route("/get_month_history", methods=["GET"])
 @jwt_required()
 def get_month_history():
     current_user = get_jwt_identity()
