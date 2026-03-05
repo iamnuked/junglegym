@@ -267,7 +267,7 @@ def save_gymdata_by_1hour():
             last_hour = now.hour
             # 업데이트 코드 넣기
             now_gym_data = gym_data_collection.find_one({"datetime": "now"})
-            now_gym_data[datetime] = datetime.now().strftime("%Y-%m-%d %H (%A)")
+            now_gym_data[datetime] = datetime.now().strftime("%Y-%m-%d %H")
             gym_data_collection.insert_one(now_gym_data)
         time.sleep(60) #60초
 threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
@@ -275,6 +275,9 @@ threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 
 ##############################################
 # 기록 관련 
+#
+# 시간 형식 %Y-%m-%d %H    예시 -> 2026-03-05 15
+#
 # 1. 전체 기록 클라이언트로 전송
 # 2. 기간 선택해서 클라이언트로 전송
 
@@ -288,7 +291,10 @@ def get_history():
     return jsonify(user_history)
 
 
+# 혼잡도 데이터 전송 관련
 
+# @app.route("/now_complex")
+#     gym_data_collection.
 
 
 
