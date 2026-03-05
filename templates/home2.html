@@ -288,13 +288,13 @@
                 </div>
                 <div class="flex flex-5">
                   <div class="flex-1 content-center text-center">
-                    <p class="inline">${rank}</p>
+                    <p class="inline">랭킹</p>
                   </div>
                   <div class="flex-1 content-center text-center">
-                    <p class="inline">${name}</p>
+                    <p class="inline">이름</p>
                   </div>
                   <div class="flex-1 content-center text-center">
-                    <p class="inline">${number_receive}일</p>
+                    <p class="inline">운동 일수</p>
                   </div>
                 </div>
               </li>`);
@@ -478,17 +478,13 @@
         { gen: "12기", id: "asd", name: "asd", number_receive: "16" },
       ];
       $(".ranking_table").empty();
+      rankingTableAddRow(0, "", 0, 0);
       const RankingKey = Object.keys(testRanking);
       for (i = 0; i < (testRanking.length < 5 ? 5 : testRanking.length); i++) {
         let rankingName = testRanking[i]["name"];
         let number_receive = testRanking[i]["number_receive"];
         let ranking = i + 1;
-        rankingTableAddRow(
-          ranking,
-          rankingName,
-          number_receive,
-          i == 0 ? 0 : 1,
-        );
+        rankingTableAddRow(ranking, rankingName, number_receive, 1);
       }
       rankingTableAddRow(5, name, 5, 2);
     </script>
