@@ -364,7 +364,7 @@ threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 def get_history():
     current_user = get_jwt_identity()
     user_history = use_history_collection.find({"id": current_user})
-    return jsonify(user_history)
+    return jsonify(list(user_history))
 
 
 # 혼잡도 데이터 전송 관련
@@ -374,7 +374,7 @@ def get_history():
 def get_now_complex():
     now_complex_data = gym_data_collection.find({"datetime": "now"})
 
-    return jsonify(now_complex_data)
+    return jsonify(list(now_complex_data))
 
 
 @app.route("/get_today_complex", methods=["GET"])

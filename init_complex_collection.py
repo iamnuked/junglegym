@@ -13,7 +13,7 @@ gym_data_collection = db["GYM_DATA"]
 rank_data_collection = db["RANK_DATA"]
 
 def init_complex_count():
-    if gym_data_collection.find_one({"datetime": "now"}) > 0:
+    if gym_data_collection.find_one({"datetime": "now"}):
         gym_data_collection.update_one({"datetime": "now"}, {"$set": 0})
     else:
         gym_data_collection.insert_one({"datetime": "now", "count": 0})
