@@ -29,6 +29,9 @@ class CustomJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
             return str(o)
+        elif isinstance(o, datetime):
+            return o.strftime("%Y-%m-%d %H=%w")
+
         return json.JSONEncoder.default(self, o)
 
 
@@ -238,7 +241,9 @@ def check_number(number_receive):
 
 
 def init_complex_count():
-    gym_data_collection.insert_one({"now": "now", "datetime": datetime.now(), "count": 0})
+    gym_data_collection.insert_one(
+        {"now": "now", "datetime": datetime.now(), "count": 0}
+    )
 
 
 # 짐 출근
@@ -340,7 +345,13 @@ def save_gymdata_by_1hour():
             last_hour = now.hour
             now_gym_count = gym_data_collection.find_one({"now": "now"})
             gym_data_collection.update_one({"now": "now"}, {"$set": ""})
-            gym_data_collection.insert_one({"now": "now", "datetime" : datetime.now(), "count": now_gym_count["count"]})
+            gym_data_collection.insert_one(
+                {
+                    "now": "now",
+                    "datetime": datetime.now(),
+                    "count": now_gym_count["count"],
+                }
+            )
         time.sleep(60)  # 60초
 
 
@@ -366,10 +377,9 @@ def get_history():
     return jsonify(list(user_history))
 
 
-
 # 3월 2일 월요일
 # 주간 기록 작성중
-@app.route("/get_week_history", method=["GET"])
+@app.route("/get_week_history", methods=["GET"])
 @jwt_required()
 def get_week_history():
     current_user = get_jwt_identity()
@@ -382,15 +392,8 @@ def get_week_history():
         day = diff % 7
 
 
-
-
-
-
-
-
-
-
 # 혼잡도 데이터 전송 관련
+
 
 @app.route("/get_now_complex", methods=["GET"])
 def get_now_complex():
@@ -406,7 +409,8 @@ def get_today_complex():
     today_complex_data = gym_data_collection.find(
         {"datetime": {"$gte": start, "$lt": end}}
     )
-    return jsonify(list(today_complex_data))
+    z = list(today_complex_data)
+    return jsonify(z)
 
 
 ######################

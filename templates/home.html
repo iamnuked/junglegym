@@ -496,7 +496,7 @@
       let aka = 1;
       $.ajax({
         type: "get",
-        url: "/get_now_complex",
+        url: "/get_today_complex",
         data: {},
         success: (response) => {
           console.log(response);
@@ -509,6 +509,65 @@
       //     console.log(response);
       //   },
       // });
+      const ctx = document.getElementById("myChart");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["2026-03-05 00:00:00", "2026-03-05 24:00"],
+          datasets: [
+            {
+              label: "현재 인원",
+              data: [
+                { x: "2026-03-05 10", y: 12 },
+                { x: "2026-03-05 11", y: 19 },
+                { x: "2026-03-05 12", y: 7 },
+              ],
+              borderColor: "blue",
+              borderWidth: 2,
+            },
+            {
+              label: "과거 인원",
+              data: [
+                { x: "2026-03-05 10:00:00", y: 6 },
+                { x: "2026-03-05 11:00:00", y: 9 },
+                { x: "2026-03-05 12:00:00", y: 17 },
+              ],
+              borderColor: "red",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "hour",
+                displayFormats: {
+                  hour: "HH",
+                },
+              },
+              grid: {
+                display: false,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: false,
+              },
+              ticks: {
+                display: false,
+              },
+              border: {
+                display: false,
+              },
+            },
+          },
+        },
+      });
     </script>
   </body>
 </html>
