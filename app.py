@@ -182,7 +182,7 @@ def gym_start():
     current_user = get_jwt_identity()
     history = {
         "id": current_user,
-        "start_datetime": datetime.now(),
+        "start_datetime": datetime.now().strftime("%Y-%m-%d %H"),
         "end_datetime": "",
     }
 
@@ -197,7 +197,7 @@ def gym_end():
     current_user_id = get_jwt_identity()
     use_history_collection.update_one({
             "id": current_user_id, "end_datetime": ""},
-            {"$set": {"end_datetime": datetime.now()}
+            {"$set": {"end_datetime": datetime.now().strftime("%Y-%m-%d %H")}
          })
     gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
 
