@@ -45,12 +45,30 @@ def invalid_token_callback(callback):
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    user = None
 
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+
+        user_data = user_collection.find_one({"id": user_id})
+
+        if user_data:
+            user = {
+                "id": user_data["id"],
+                "name": user_data["name"]
+            }
+    except:
+        user = None
+    return render_template("home.html", user=user)
 
 @app.route("/join_home")
 def joinhome():
     return render_template("join.html")
+
+@app.route("/edit")
+def go_edit():
+    return render_template("edit.html")
 
 
 @app.route("/login", methods=["POST"])
@@ -248,11 +266,10 @@ def edit():
             return jsonify(success=False)
         
 @app.route("/logout", methods=["POST"])
-@jwt_required()
 def logout():
     # 쿠키에 저장된 jwt 삭제
-    response = redirect('/')
-    unset_jwt_cookies(response)
+    response = jsonify(success=True)
+    unset_jwt_cookies(response) # 브라우저에 저장된 jwt 쿠키 삭제
     return response
 
 
