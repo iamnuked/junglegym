@@ -43,6 +43,7 @@ for i in range(1, 101):
     user = {
         "id": user_id,
         "pw": generate_password_hash(f"password{i}"),
+        "password": f"password{i}",
         "name": name,
         "gen": gen,
         "number_receive": number_receive,
@@ -52,19 +53,22 @@ for i in range(1, 101):
 # USE_HISTORY 생성
 use_history_list = []
 
-historyConfigure = [1, 2, 3]
+historyConfigure = [3]
 gym_data_list = []
 location_setting = set()
 now = datetime.now()
 # 거점 만들기
 for i in range(100):
-    day = random.randint(1, 28)
-    hour = random.randint(6, 20)
+    day = random.randint(2, 5)
+    if day == 2:
+        hour = random.randint(18, 20)
+    else:
+        hour = random.randint(6, 20)
     minute = random.randint(0, 59)
-    month = historyConfigure[random.randint(0, len(historyConfigure) - 1)]
+    # month = historyConfigure[random.randint(0, len(historyConfigure) - 1)]
     start = datetime(
         2026,
-        month,
+        3,
         day,
         hour,
         minute,

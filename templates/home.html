@@ -633,7 +633,7 @@
       };
 
       // render
-
+      $(".get_now_complex")
       const testRanking = [
         { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
         { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
@@ -658,22 +658,6 @@
         };
         return dateFromObjectId(objId);
       };
-      let aka = 1;
-      $.ajax({
-        type: "get",
-        url: "/get_now_complex",
-        data: {},
-        success: (response) => {
-          console.log(response);
-        },
-      });
-      // $.ajax({
-      //   type: "get",
-      //   url: "/rank_month/3",
-      //   success: (response) => {
-      //     console.log(response);
-      //   },
-      // });
           
       // 주간,월간 그래프 교체하기
       const ctx = document.getElementById("periodChart");
