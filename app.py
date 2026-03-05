@@ -17,6 +17,8 @@ db = client["junglegym"]
 user_collection = db["USER"]
 use_history_collection = db["USE_HISTORY"]
 gym_data_collection = db["GYM_DATA"]
+rank_data_collection = db["RANK_DATA"]
+
 
 
 app = Flask(__name__)
@@ -312,6 +314,27 @@ def get_history():
 
 # @app.route("/now_complex")
 #     gym_data_collection.
+
+
+######################
+# 랭킹 관련
+
+# def calc_by_month():
+#     use_history_collection.aggregate({
+
+#     })
+
+# # 랭킹 계산 하루에 한 번
+# def save_total_rank():
+#     calc_rank_data = use_history_collection.find()
+
+
+
+# # 탑5 랭커 가져오기
+# @app.route("/get_top5_rank", methods=["GET"])
+# def get_top5_rank():
+#     top5_rank = rank_data_collection.find()
+#     return jsonify(top5_rank)
 
 
 
