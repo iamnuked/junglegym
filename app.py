@@ -156,11 +156,6 @@ def check_number(number_receive):
 
 
 
-# 1시간 간격 혼잡도 데이터 저장 -> 몽고db Change Streams 사용?
-def save_complex_data():
-    gym_data_collection.insert_one({"datetime": datetime.now().strftime("%Y-%m-%d %H:%M (%A)")})
-
-
 
 
 # 짐 출근
@@ -261,6 +256,10 @@ def logout():
     response = redirect('/')
     unset_jwt_cookies(response)
     return response
+
+
+
+
 # 혼잡도 기록 저장 관련 루프문
 def save_gymdata_by_1hour():
     last_hour = datetime.now().hour
@@ -269,8 +268,12 @@ def save_gymdata_by_1hour():
         if now.hour != last_hour:
             last_hour = now.hour
             # 업데이트 코드 넣기
+            now_gym_data = gym_data_collection.find_one({"datetime": "now"})
+            now_gym_data[datetime] = datetime.now().strftime("%Y-%m-%d %H (%A)")
+            gym_data_collection.insert_one(now_gym_data)
         time.sleep(60) #60초
 threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
+
 
 # 혼잡도 새로고침
 def refresh_complex():
