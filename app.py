@@ -19,7 +19,24 @@ app = Flask(__name__)
 # 우선 access token만 사용, 유효기간 2시간 설정 -> 추후 가능하면 refresh token 구현
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  # 쿠키에서 JWT를 가져와서 읽을 것임
+app.config["JWT_COOKIE_HTTPONLY"] = True    # JS에서는 쿠키 접근을 막음
+app.config["JWT_COOKIE_SAMESITE"] = "Lax"   # CSRF 공격(다른 사이트에서 자동으로 쿠키를 보내는 상황) 제한
 jwt = JWTManager(app)
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify(success=False, message="로그인이 만료되었습니다. 재로그인이 필요합니다."), 401
+
+
+@jwt.unauthorized_loader
+def missing_token_callback(callback):
+    return jsonify(success=False, message="로그인이 필요합니다."), 401
+
+
+@jwt.invalid_token_loader
+def invalid_token_callback(callback):
+    return jsonify(success=False, message="유효하지 않은 토큰입니다."), 422
 
 
 @app.route("/")
@@ -49,7 +66,10 @@ def login():
     # 1. 로그인 ui 사라지고 텍스트 나타남 (이름)
     # 2. 출근 버튼 나타남
     # 3. 로그아웃 버튼 나타남
-    return jsonify(success=True, access_token=access_token, name=user["name"])
+    response = jsonify(success=True, name=user["name"])
+    # jwt 쿠키에 저장
+    set_access_cookies(response, access_token)
+    return response
 
 
 @app.route("/join", methods=["POST"])
@@ -179,4 +199,4 @@ def edit():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=os.environ.get("PORT"), debug=True)
+    app.run("0.0.0.0", port=os.environ.get("PORT", 5000), debug=True)
