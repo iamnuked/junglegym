@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect
 from pymongo import MongoClient
 from flask_jwt_extended import *
 import os
@@ -233,7 +233,14 @@ def edit():
         else:
             # case를 나누는게 조금 애매해서 우선은 False 반환
             return jsonify(success=False)
-
+        
+@app.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    # 쿠키에 저장된 jwt 삭제
+    response = redirect('/')
+    unset_jwt_cookies(response)
+    return response
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=os.environ.get("PORT", 5000), debug=True)
