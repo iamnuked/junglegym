@@ -321,7 +321,9 @@ def gym_end():
 def delete():
     current_user = get_jwt_identity()
     user_collection.delete_one({"id": current_user})
-    return jsonify({"result": "회원 탈퇴 성공"})
+    response = jsonify({"result": "회원 탈퇴 성공"})
+    unset_jwt_cookies(response)   # JWT 쿠키 삭제
+    return response
 
 
 # 회원 가입 수정 페이지 진입 시 필요한 데이터 전달
@@ -355,7 +357,7 @@ def edit():
     if name_receive != user["name"]:
         edit_data["name"] = name_receive
 
-    if pw_receive != user["pw"]:
+    if pw_receive:
         edit_data["pw"] = generate_password_hash(pw_receive)
 
     if gen_receive != user["gen"]:
