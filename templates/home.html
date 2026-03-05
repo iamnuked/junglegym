@@ -72,11 +72,14 @@
                   />
                 </a>
               </div>
-              <button
-                class="font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
-              >
-                GYM출근
-              </button>
+              <div class="exercise_btn">
+                <button
+                  class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                  onclick="exerciseStartAPI(this)"
+                >
+                  GYM출근
+                </button>
+              </div>
               <button
                 class="w-full text-center underline"
                 onclick="logoutButton(this)"
@@ -117,7 +120,7 @@
             <div>
               <p class="font_small">
                 총
-                <span class="total_excersize_number font_small font-bold"
+                <span class="total_exercize_number font_small font-bold"
                   >10</span
                 >명 입니다.
               </p>
@@ -217,6 +220,55 @@
         targetElement.style.setProperty("--font-size", "100px");
       };
       // fontSizeConverter("font_large");
+
+      const exerciseStartAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_start",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(true);
+          },
+        });
+      };
+
+      const exerciseEndAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_end",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(false);
+          },
+        });
+      };
+
+      const exerciseStartEndMaker = (isStart) => {
+        $(".exercise_btn").empty();
+        if (!isStart) {
+          $(".exercise_btn").append(`                <button
+                  class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                  onclick="exerciseStartAPI(this)"
+                >
+                  GYM출근
+                </button>`);
+        } else {
+          $(".exercise_btn").append(
+            $(".exercise_btn").append(`                <button
+                  class="end_btn font_medium rounded-lg bg-red-600 text-white border-none w-full p-4 hover:outline-red-800 hover:outline-2 active:bg-red-800 transition"
+                  onclick="exerciseEndAPI(this)"
+                >
+                  GYM퇴근
+                </button>`),
+          );
+        }
+      };
 
       const getOTTTTTTTT = () => {
         $.ajax({

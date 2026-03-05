@@ -14,7 +14,6 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   </head>
   <body>
@@ -78,33 +77,35 @@
           </div>
         </div>
         <div class="menu_master flex-8 flex flex-col">
-          <div
-            class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7"
-          >
-            <div>
-              <p class="font_small text-white">원할</p>
+          <div class="home hidden">
+            <div
+              class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7"
+            >
+              <div>
+                <p class="font_small text-white">원할</p>
+              </div>
+              <div>
+                <p class="font_small">
+                  현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
+                </p>
+              </div>
+              <div>
+                <p class="font_small">
+                  총
+                  <span class="total_excersize_number font_small font-bold"
+                    >10</span
+                  >명 입니다.
+                </p>
+              </div>
+              <div class="w-[60%] h-[60%]">
+                <canvas id="myChart"></canvas>
+              </div>
             </div>
-            <div>
-              <p class="font_small">
-                현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
-              </p>
+            <div
+              class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8"
+            >
+              <div class="ranking_table m-4"></div>
             </div>
-            <div>
-              <p class="font_small">
-                총
-                <span class="total_excersize_number font_small font-bold"
-                  >10</span
-                >명 입니다.
-              </p>
-            </div>
-            <div class="w-[60%] h-[60%]">
-              <canvas id="myChart"></canvas>
-            </div>
-          </div>
-          <div
-            class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8"
-          >
-            <div class="ranking_table m-4"></div>
           </div>
         </div>
       </div>
@@ -429,21 +430,20 @@
             <div class="ranking_table m-4"></div>
           </div>`);
         const ctx = document.getElementById("myChart");
+        // "2000-01-01" + " " + "2016-10-20 17".split(" ")[1]
         new Chart(ctx, {
           type: "line",
           data: {
-            labels: [
-              "2016-10-20 17",
-              "2016-10-20 17:28:00",
-              "2016-10-20 17:33:00",
-              "2016-10-20 17:38:00",
-              "2016-10-22 11:59:00",
-              "2016-10-25 17:59:00",
-            ],
             datasets: [
               {
-                label: "number of health people",
-                data: [12, 19, 3, 5, 2, 3],
+                data: [
+                  { x: "2016-10-20 17", y: 12 },
+                  { x: "2016-10-20 17:28:00", y: 19 },
+                  { x: "2016-10-20 17:33:00", y: 3 },
+                  { x: "2016-10-20 17:38:00", y: 5 },
+                  { x: "2016-10-22 11:59:00", y: 2 },
+                  { x: "2016-10-25 17:59:00", y: 3 },
+                ],
                 borderWidth: 1,
               },
             ],
@@ -453,6 +453,7 @@
             maintainAspectRatio: false,
             scales: {
               x: {
+                grid: { display: false },
                 type: "time",
                 time: {
                   unit: "hour",
@@ -462,6 +463,7 @@
                 },
               },
               y: {
+                grid: { display: false },
                 beginAtZero: true,
               },
             },

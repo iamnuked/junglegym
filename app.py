@@ -20,20 +20,27 @@ gym_data_collection = db["GYM_DATA"]
 rank_data_collection = db["RANK_DATA"]
 
 
-
 app = Flask(__name__)
 # 우선 access token만 사용, 유효기간 2시간 설정 -> 추후 가능하면 refresh token 구현
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  # 쿠키에서 JWT를 가져와서 읽을 것임
-app.config["JWT_COOKIE_HTTPONLY"] = True    # JS에서는 쿠키 접근을 막음
-app.config["JWT_COOKIE_SAMESITE"] = "Lax"   # CSRF 공격(다른 사이트에서 자동으로 쿠키를 보내는 상황) 제한
-app.config["JWT_COOKIE_CSRF_PROTECT"] = False   # 운영 배포 시 True로 변경
+app.config["JWT_COOKIE_HTTPONLY"] = True  # JS에서는 쿠키 접근을 막음
+app.config["JWT_COOKIE_SAMESITE"] = (
+    "Lax"  # CSRF 공격(다른 사이트에서 자동으로 쿠키를 보내는 상황) 제한
+)
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # 운영 배포 시 True로 변경
 jwt = JWTManager(app)
+
 
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
-    return jsonify(success=False, message="로그인이 만료되었습니다. 재로그인이 필요합니다."), 401
+    return (
+        jsonify(
+            success=False, message="로그인이 만료되었습니다. 재로그인이 필요합니다."
+        ),
+        401,
+    )
 
 
 @jwt.unauthorized_loader
@@ -57,17 +64,16 @@ def home():
         user_data = user_collection.find_one({"id": user_id})
 
         if user_data:
-            user = {
-                "id": user_data["id"],
-                "name": user_data["name"]
-            }
+            user = {"id": user_data["id"], "name": user_data["name"]}
     except:
         user = None
     return render_template("home.html", user=user)
 
+
 @app.route("/join_home")
 def joinhome():
     return render_template("join.html")
+
 
 @app.route("/edit")
 @jwt_required()
@@ -85,7 +91,7 @@ def go_edit():
         "id": user_data["id"],
         "name": user_data["name"],
         "gen": user_data.get("gen"),
-        "number": user_data.get("number")
+        "number": user_data.get("number"),
     }
 
     return render_template("edit.html", user=user)
@@ -122,8 +128,6 @@ def join():
     gen_receive = request.form["gen_give"].strip()
     number_receive = request.form["number_give"].strip()
 
-
-
     user = {
         "name": name_receive,
         "id": id_receive,
@@ -132,15 +136,14 @@ def join():
         "number": number_receive,
     }
 
-
     # 빈 항목 검사
     if check_empty(user):
         return jsonify({"result": "빈 항목이 있습니다"})
-        
+
     # 이름 길이 검사
     if check_name_len(name_receive):
         return jsonify({"result": "잘못된 이름입니다"})
-        
+
     # 아이디 길이 검사
     if check_id_len(id_receive):
         return jsonify({"result": "잘못된 아이디입니다"})
@@ -152,22 +155,19 @@ def join():
     # 기수 검사
     if check_gen(gen_receive):
         return jsonify({"result": "잘못된 기수번호 입니다"})
-    
+
     # 번호 검사
     if check_number(number_receive):
         return jsonify({"result": "잘못된 번호입니다."})
-        
+
     # 중복 아이디 검사
     if user_collection.count_documents({"id": id_receive}) > 0:
         return jsonify({"result": "중복 아이디입니다."})
-    
-    
+
     user["pw"] = generate_password_hash(pw_receive)
 
     user_collection.insert_one(user)
     return jsonify({"result": "회원가입 성공"})
-
-
 
 
 # 무결성 검사 함수들
@@ -177,22 +177,25 @@ def check_empty(user):
             return True
     return False
 
+
 def check_name_len(name_receive):
     return len(name_receive) > 10 or len(name_receive) < 2
+
 
 def check_id_len(id_receive):
     return len(id_receive) > 20 or len(id_receive) < 4
 
+
 def check_pw_len(pw_receive):
     return len(pw_receive) > 20 or len(pw_receive) < 4
+
 
 def check_gen(gen_receive):
     return gen_receive != "12기" and gen_receive != "13기"
 
+
 def check_number(number_receive):
     return int(number_receive) < 1 or int(number_receive) > 200
-
-
 
 
 # 짐 출근
@@ -208,6 +211,7 @@ def gym_start():
 
     use_history_collection.insert_one(history)
     gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": 1}})
+    return {"result": "success"}
 
 
 # 짐 퇴근
@@ -215,14 +219,12 @@ def gym_start():
 @jwt_required()
 def gym_end():
     current_user_id = get_jwt_identity()
-    use_history_collection.update_one({
-            "id": current_user_id, "end_datetime": ""},
-            {"$set": {"end_datetime": datetime.now().strftime("%Y-%m-%d %H")}
-         })
+    use_history_collection.update_one(
+        {"id": current_user_id, "end_datetime": ""},
+        {"$set": {"end_datetime": datetime.now().strftime("%Y-%m-%d %H")}},
+    )
     gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
-
-
-                 
+    return {"result": "success"}
 
 
 @app.route("/delete", methods=["POST"])
@@ -238,7 +240,7 @@ def delete():
 @jwt_required()
 def get_me():
     current_user_id = get_jwt_identity()
-    current_user = user_collection.find_one({"id": current_user_id},{"pw":0})
+    current_user = user_collection.find_one({"id": current_user_id}, {"pw": 0})
 
     return jsonify(current_user)
 
@@ -274,19 +276,16 @@ def edit():
         edit_data["number"] = number_receive
 
     if edit_data:
-        user_collection.update_one(
-            {"id": current_user_id}, {"$set": edit_data}
-        )
+        user_collection.update_one({"id": current_user_id}, {"$set": edit_data})
         return redirect("/")
-        
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     # 쿠키에 저장된 jwt 삭제
     response = jsonify(success=True)
-    unset_jwt_cookies(response) # 브라우저에 저장된 jwt 쿠키 삭제
+    unset_jwt_cookies(response)  # 브라우저에 저장된 jwt 쿠키 삭제
     return response
-
-
 
 
 # 혼잡도 기록 저장 관련 루프문
@@ -300,17 +299,20 @@ def save_gymdata_by_1hour():
             now_gym_data = gym_data_collection.find_one({"datetime": "now"})
             now_gym_data[datetime] = datetime.now().strftime("%Y-%m-%d %H")
             gym_data_collection.insert_one(now_gym_data)
-        time.sleep(60) #60초
+        time.sleep(60)  # 60초
+
+
 threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 
 
 ##############################################
-# 기록 관련 
+# 기록 관련
 #
 # 시간 형식 %Y-%m-%d %H    예시 -> 2026-03-05 15
 #
 # 1. 전체 기록 클라이언트로 전송
 # 2. 기간 선택해서 클라이언트로 전송
+
 
 # 해당 유저 전체 기록 전송
 # id, start_datetime, end_datetime
@@ -341,7 +343,6 @@ def get_history():
 #     calc_rank_data = use_history_collection.find()
 
 
-
 # # 탑5 랭커 가져오기
 # @app.route("/get_top5_rank", methods=["GET"])
 # def get_top5_rank():
@@ -349,14 +350,12 @@ def get_history():
 #     return jsonify(top5_rank)
 
 
-
-
 ##############################################
+
 
 # 혼잡도 새로고침
 def refresh_complex():
     return gym_data_collection.find_one({"datetime": "now"})
-
 
 
 if __name__ == "__main__":
