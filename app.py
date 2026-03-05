@@ -181,9 +181,9 @@ def login():
 
     user = user_collection.find_one({"id": id_receive})
     if not user:
-        return jsonify(success=False, message="존재하지 않는 사용자입니다.")
+        return jsonify({"result": "해당 아이디가 존재하지 않습니다"})
     elif not check_password_hash(user["pw"], pw_receive):
-        return jsonify(success=False, message="비밀번호가 올바르지 않습니다.")
+        return jsonify({"result": "비밀번호가 틀립니다."})
 
     access_token = create_access_token(identity=id_receive)
 

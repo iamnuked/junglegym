@@ -230,7 +230,7 @@
             console.log(response);
             if (response.success) {
               location.reload();
-            }
+            } else {alert(response["result"])}
           },
         });
       }
