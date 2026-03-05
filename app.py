@@ -387,6 +387,30 @@ def get_week_history():
     return jsonify(new_data)
 
 
+@app.route("/get_month_history", method=["GET"])
+@jwt_required()
+def get_month_history():
+    current_user = get_jwt_identity()
+    user_history_list = list(use_history_collection.find({"id": current_user}))
+
+    sum_time = defaultdict(int)
+
+    for doc in user_history_list:
+        month = doc["end_datetime"].month
+        start = doc["start_datetime"]
+        end = doc["end_datetime"]
+
+        use_time = (end - start).total_seconds() / 60
+        sum_time[month] += use_time
+
+    new_data = []
+
+    for month, time in sum_time.items():
+        new_data.append({"month": month, "time": time})
+
+    return jsonify()
+
+
 
 
 
@@ -480,6 +504,7 @@ def get_month_rank(month):
         result.append({"rank": rank, "id": user_id, "days": count})
 
     return jsonify(result)
+
 
 
 ##############################################
