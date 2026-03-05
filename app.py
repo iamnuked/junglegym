@@ -72,26 +72,6 @@ def login():
     return response
 
 
-@app.route("/login", methods=["POST"])
-def login():
-    id_receive = request.form.get("id_give")
-    pw_receive = request.form.get("pw_give")
-
-    user = user_collection.find_one({"id": id_receive})
-    if not user:
-        return jsonify(success=False, message="존재하지 않는 사용자입니다.")
-    elif not check_password_hash(user["pw"], pw_receive):
-        return jsonify(success=False, message="비밀번호가 올바르지 않습니다.")
-
-    access_token = create_access_token(identity=id_receive)
-
-    # 로그인 성공 시
-    # 1. 로그인 ui 사라지고 텍스트 나타남 (이름)
-    # 2. 출근 버튼 나타남
-    # 3. 로그아웃 버튼 나타남
-    return jsonify(success=True, access_token=access_token, name=user["name"])
-
-
 @app.route("/join", methods=["POST"])
 def join():
     name_receive = request.form["name_give"].strip()
