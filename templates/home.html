@@ -436,22 +436,99 @@
           number_receive: 10,
         };
       };
+      const nextMonthRanking = (e) => {
+        const month = $(".month_ranking").text()
+        
+        const today = new Date();
+        if (Number(month) === today.getMonth()+1 || Number(month)+1 > 12 ){
+          renderRankingSystem()
+          return ;
+        }
 
-      const rankingTableAddRow = (rank, name, number_receive, add_type) => {
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${Number(month)+1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,Number(month)+1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+      
+      const prevMonthRanking = (e) => {
+        const month = $(".month_ranking").text()
+        
+
+        
+        const today = new Date();
+        if (Number(month) - 1 === 0){
+          renderRankingSystem()
+          return ;
+        }
+
+
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${month-1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,month-1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+      
+      const renderRankingSystem = () => {
+        const month = new Date();
+        console.log(month.getMonth()+1)
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${month.getMonth() + 1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,month.getMonth() + 1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+
+      const rankingTableAddRow = (rank, name, number_receive, add_type,month=3) => {
         switch (add_type) {
           case 0:
             $(".ranking_table").append(`              <li class="flex py-5">
                 <div class="flex-1 content-center text-center">
                   <div
                     class="inline select-none text-blue-600 hover:text-blue-800"
-                    onclick="nextMonthRanking(this)"
+                    onclick="prevMonthRanking(this)"
                   >
                     ◀
                   </div>
-                  <p class="inline">3월 랭킹</p>
+                  <p class="inline"><span class="month_ranking">${month}</span>월 랭킹</p>
                   <div
                     class="inline select-none text-blue-600 hover:text-blue-800"
-                    onclick="prevMonthRanking(this)"
+                    onclick="nextMonthRanking(this)"
                   >
                     ▶
                   </div>
@@ -595,7 +672,6 @@
           success:(response)=>{
             const ctx = document.getElementById("myChart");
 
-            console.log(response)
             $(".total_excersize_number").text(last_date);
             // 백엔드와 협의 필요
             // const day_array = Object.keys(request);
@@ -668,23 +744,9 @@
       };
 
       // render
-      const testRanking = [
-        { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
-        { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
-        { gen: "12기", id: "asd", name: "asd", number_receive: "14" },
-        { gen: "12기", id: "asd", name: "asd", number_receive: "15" },
-        { gen: "12기", id: "asd", name: "asd", number_receive: "16" },
-      ];
-      $(".ranking_table").empty();
-      rankingTableAddRow(0, "", 0, 0);
-      const RankingKey = Object.keys(testRanking);
-      for (i = 0; i < (testRanking.length < 5 ? 5 : testRanking.length); i++) {
-        let rankingName = testRanking[i]["name"];
-        let number_receive = testRanking[i]["number_receive"];
-        let ranking = i + 1;
-        rankingTableAddRow(ranking, rankingName, number_receive, 1);
-      }
-      rankingTableAddRow(5, name, 5, 2);
+      // rank
+      
+      renderRankingSystem()
 
       const objToNow = (objId) => {
         const dateFromObjectId = function (objectId) {
@@ -754,7 +816,7 @@
       
     // 첫 그래프는 주간그래프
     drawChart(weekly);
-    setPopularFunction();
+    setInterval(setPopularFunction(),3600000);
     </script>
 </body>
 

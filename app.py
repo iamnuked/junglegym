@@ -385,7 +385,7 @@ def save_gymdata_by_1hour():
         if now.hour != last_hour:
             last_hour = now.hour
             now_gym_count = gym_data_collection.find_one({"now": "now"})
-            gym_data_collection.update_one({"now": "now"}, {"$set": ""})
+            gym_data_collection.update_one({"$set": ""}, {"now": "now"})
             gym_data_collection.insert_one(
                 {
                     "now": "now",
@@ -463,7 +463,7 @@ def get_week_history():
 
 @app.route("/get_month_history", methods=["GET"])
 @jwt_required()
-def get_month_history():
+def get_month_history():  # 나의 기록
     current_user = get_jwt_identity()
     user_history_list = list(use_history_collection.find({"id": current_user}))
 
@@ -488,14 +488,14 @@ def get_month_history():
 # 혼잡도 데이터 전송 관련
 
 
-@app.route("/get_now_complex", methods=["GET"])
+@app.route("/get_now_complex", methods=["GET"])  # 현재 시간대 사람수
 def get_now_complex():
     now_complex_data = gym_data_collection.find({"now": "now"})
 
     return jsonify(list(now_complex_data))
 
 
-@app.route("/get_today_complex", methods=["GET"])
+@app.route("/get_today_complex", methods=["GET"])  # 하루 전체 사람수
 def get_today_complex():
     start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
@@ -569,7 +569,8 @@ def get_month_rank(month):
 
     # 랭킹 생성
     for rank, (user_id, count) in enumerate(sorted_users, start=1):
-        result.append({"rank": rank, "id": user_id, "days": count})
+        target = user_collection.find_one({"id": user_id})
+        result.append({"rank": rank, "name": target["name"], "days": count})
 
     return jsonify(result)
 
