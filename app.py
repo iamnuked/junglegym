@@ -56,10 +56,7 @@ db = client["junglegym"]
 user_collection = db["USER"]
 use_history_collection = db["USE_HISTORY"]
 # 최신순을 기준으로 주로 사용할 것이기 때문
-use_history_collection.create_index([
-    ("id", 1),
-    ("start_datetime", -1)
-])
+use_history_collection.create_index([("id", 1), ("start_datetime", -1)])
 gym_data_collection = db["GYM_DATA"]
 rank_data_collection = db["RANK_DATA"]
 
@@ -117,9 +114,7 @@ def home():
             user = {"id": user_data["id"], "name": user_data["name"]}
 
             # 운동 기록 처음에 띄울 5개 데이터
-            total_count = use_history_collection.count_documents(
-                {"id": user_id}
-            )
+            total_count = use_history_collection.count_documents({"id": user_id})
 
             total_pages = math.ceil(total_count / per_page)
 
@@ -137,7 +132,15 @@ def home():
         user = None
         history = []
     print(history)
-    return render_template("home.html", user=user, history=history, page=page, total_pages=total_pages, has_next=has_next)
+    return render_template(
+        "home.html",
+        user=user,
+        history=history,
+        page=page,
+        total_pages=total_pages,
+        has_next=has_next,
+    )
+
 
 @app.route("/join_home")
 def joinhome():
@@ -273,7 +276,9 @@ def check_number(number_receive):
 
 
 def init_complex_count():
-    gym_data_collection.insert_one({"now": "now", "datetime": datetime.now(), "count": 0})
+    gym_data_collection.insert_one(
+        {"now": "now", "datetime": datetime.now(), "count": 0}
+    )
 
 
 # 짐 출근
@@ -298,18 +303,17 @@ def gym_start():
 def gym_end():
     current_user_id = get_jwt_identity()
     active_history = use_history_collection.find_one(
-        {"id": current_user_id, "end_datetime": ""},
-        sort=[("start_datetime", -1)]
+        {"id": current_user_id, "end_datetime": ""}, sort=[("start_datetime", -1)]
     )
     if active_history:
         use_history_collection.update_one(
-        {"_id": active_history["_id"]},
-        {"$set": {"end_datetime": datetime.now()}},
-    )
+            {"_id": active_history["_id"]},
+            {"$set": {"end_datetime": datetime.now()}},
+        )
         gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
         return {"result": "success"}
     else:
-        return{"result" : "no_active_data"}
+        return {"result": "no_active_data"}
 
 
 @app.route("/delete", methods=["POST"])
@@ -382,7 +386,13 @@ def save_gymdata_by_1hour():
             last_hour = now.hour
             now_gym_count = gym_data_collection.find_one({"now": "now"})
             gym_data_collection.update_one({"now": "now"}, {"$set": ""})
-            gym_data_collection.insert_one({"now": "now", "datetime" : datetime.now(), "count": now_gym_count["count"]})
+            gym_data_collection.insert_one(
+                {
+                    "now": "now",
+                    "datetime": datetime.now(),
+                    "count": now_gym_count["count"],
+                }
+            )
         time.sleep(60)  # 60초
 
 
@@ -409,9 +419,7 @@ def get_history():
     page = int(request.args.get("page", 1))
     per_page = 5
 
-    total_count = use_history_collection.count_documents(
-        {"id": current_user}
-    )
+    total_count = use_history_collection.count_documents({"id": current_user})
 
     total_pages = max(1, math.ceil(total_count / per_page))
 
@@ -419,16 +427,12 @@ def get_history():
 
     history = list(
         use_history_collection.find({"id": current_user})
-        .sort([("start_datetime", -1), ("_id",-1)])
+        .sort([("start_datetime", -1), ("_id", -1)])
         .skip(skip_count)
         .limit(per_page)
     )
 
-    return jsonify({
-        "history": history,
-        "page": page,
-        "total_pages": total_pages
-    })
+    return jsonify({"history": history, "page": page, "total_pages": total_pages})
 
 
 # 3월 2일 월요일
@@ -445,9 +449,15 @@ def get_week_history():
     for target in user_history_list:
         diff = target["end_datetime"] - start_jungle_date
         week = diff // 7 + 1
-        day = diff % 7 # 요일
-        new_data.append({"week": week, "day": day, "time": target["end_datetime"] - target["start_datetime"]})
-    
+        day = diff % 7  # 요일
+        new_data.append(
+            {
+                "week": week,
+                "day": day,
+                "time": target["end_datetime"] - target["start_datetime"],
+            }
+        )
+
     return jsonify(new_data)
 
 
@@ -475,14 +485,8 @@ def get_month_history():
     return jsonify(new_data)
 
 
-
-
-
-
-
-
-
 # 혼잡도 데이터 전송 관련
+
 
 @app.route("/get_now_complex", methods=["GET"])
 def get_now_complex():
@@ -568,7 +572,6 @@ def get_month_rank(month):
         result.append({"rank": rank, "id": user_id, "days": count})
 
     return jsonify(result)
-
 
 
 ##############################################
