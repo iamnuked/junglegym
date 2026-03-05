@@ -28,6 +28,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  # 쿠키에서 JWT를 가져와서 읽을 것임
 app.config["JWT_COOKIE_HTTPONLY"] = True    # JS에서는 쿠키 접근을 막음
 app.config["JWT_COOKIE_SAMESITE"] = "Lax"   # CSRF 공격(다른 사이트에서 자동으로 쿠키를 보내는 상황) 제한
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False   # 운영 배포 시 True로 변경
 jwt = JWTManager(app)
 
 @jwt.expired_token_loader
@@ -69,8 +70,25 @@ def joinhome():
     return render_template("join.html")
 
 @app.route("/edit")
+@jwt_required()
 def go_edit():
-    return render_template("edit.html")
+    user = None
+    user_id = get_jwt_identity()
+
+    user_data = user_collection.find_one({"id": user_id})
+
+    if not user_data:
+        # 에러 페이지 등으로 안내 필요함. 우선 /로 redirect
+        return redirect("/")
+
+    user = {
+        "id": user_data["id"],
+        "name": user_data["name"],
+        "gen": user_data.get("gen"),
+        "number": user_data.get("number")
+    }
+
+    return render_template("edit.html", user=user)
 
 
 @app.route("/login", methods=["POST"])
@@ -243,29 +261,23 @@ def edit():
 
     edit_data = {}
 
-    if name_receive:
+    if name_receive != user["name"]:
         edit_data["name"] = name_receive
 
-    if pw_receive:
+    if pw_receive != user["pw"]:
         edit_data["pw"] = generate_password_hash(pw_receive)
 
-    if gen_receive:
+    if gen_receive != user["gen"]:
         edit_data["gen"] = gen_receive
 
-    if number_receive:
-        edit_data["number_receive"] = number_receive
+    if number_receive != user["number"]:
+        edit_data["number"] = number_receive
 
     if edit_data:
-        result = user_collection.update_one(
+        user_collection.update_one(
             {"id": current_user_id}, {"$set": edit_data}
         )
-
-        # 실제로 변경된 문서 순
-        if result.modified_count > 0:
-            return jsonify(success=True)
-        else:
-            # case를 나누는게 조금 애매해서 우선은 False 반환
-            return jsonify(success=False)
+        return redirect("/")
         
 @app.route("/logout", methods=["POST"])
 def logout():
