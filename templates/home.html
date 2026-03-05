@@ -16,10 +16,11 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   </head>
 
   <body>
-    <div class="m-2 p-3 flex flex-col min-h-screen">
+    <div class="p-3 flex flex-col min-h-screen">
       <div class="">
         <p class="font_medium">정글러의 득근득근한 생활을 위한</p>
         <p class="font_large font-bold">Jung/eGYM</p>
@@ -105,63 +106,48 @@
             </div>
           </div>
         </div>
-        <div class="flex-8 flex flex-col">
-          <div
-            class="mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7"
-          >
-            <div>
-              <p class="font_small text-white">원할</p>
-            </div>
-            <div>
-              <p class="font_small">
-                현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
-              </p>
-            </div>
-            <div>
-              <p class="font_small">
-                총
-                <span class="total_exercize_number font_small font-bold"
-                  >10</span
-                >명 입니다.
-              </p>
-            </div>
-            <div class="w-[60%] h-[60%]">
-              <canvas id="myChart"></canvas>
-            </div>
-          </div>
-          <div
-            class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8"
-          >
-            <div class="flex">
-              <div class="flex-2">오늘의 랭킹</div>
-
-              <div class="flex-8">
-                <table>
-                  <thead>
-                    <tr>
-                      <th class="ranking_table_class">랭킹</th>
-                      <th class="ranking_table_class">이름</th>
-                      <th class="ranking_table_class">횟수</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th class="ranking_table_class">랭킹</th>
-                      <th class="ranking_table_class">이름</th>
-                      <th class="ranking_table_class">횟수</th>
-                    </tr>
-                  </tbody>
-                </table>
+        <div class="main_menu flex-8 flex flex-col ml-1">
+          <!--홈메뉴-->
+          <div class="home_menu flex-8 flex flex-col" h>
+            <div
+              class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7"
+            >
+              <div>
+                <p class="font_small text-white">원할</p>
+              </div>
+              <div>
+                <p class="font_small">
+                  현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
+                </p>
+              </div>
+              <div>
+                <p class="font_small">
+                  총
+                  <span class="total_exercize_number font_small font-bold"
+                    >10</span
+                  >명 입니다.
+                </p>
+              </div>
+              <div class="w-[100%] h-[60%]">
+                <canvas id="myChart"></canvas>
               </div>
             </div>
+            <div
+              class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8"
+            >
+              <div class="ranking_table m-4"></div>
+            </div>
           </div>
+          <!--나의 기록 메뉴-->
+          <div class="my_record bg-red-600 w-[100%] h-[100%] hidden"></div>
         </div>
       </div>
     </div>
 
     <script>
-      // 버튼 스크립트
+      // 로그인 스크립트
       function loginButton(e) {
+        // 로그인 버튼
         const login_id = $(".login_id_btn").val();
         const login_password = $(".login_password_btn").val();
 
@@ -181,6 +167,7 @@
         });
       }
 
+      // 로그아웃 버튼
       function logoutButton(e) {
         $.ajax({
           type: "post",
@@ -193,15 +180,18 @@
           },
         });
       }
+      // 회원등록 버튼
       const registerButton = (e) => {
         window.location.href = "/join_home";
-        console.log(e);
       };
+      // 대시보드 메뉴
       const dashBoardButton = (e) => {
-        console.log(e);
+        $(".home_menu").removeClass("hidden");
+        $(".my_record").addClass("hidden");
       };
       const recordButton = (e) => {
-        console.log(e);
+        $(".home_menu").addClass("hidden");
+        $(".my_record").removeClass("hidden");
       };
 
       const rootStyles = window.getComputedStyle(document.documentElement);
@@ -220,6 +210,8 @@
         targetElement.style.setProperty("--font-size", "100px");
       };
       // fontSizeConverter("font_large");
+
+      // 출근 / 퇴근 버튼 API
 
       const exerciseStartAPI = (e) => {
         $.ajax({
@@ -270,19 +262,138 @@
         }
       };
 
-      const getOTTTTTTTT = () => {
+      // 테이블 랭킹
+      const rankingTable = () => {
+        // jinja2 받을 부분
+        const ranking_table = {
+          ranking: 1,
+          name: "김일일",
+          number_receive: 10,
+        };
+      };
+
+      const rankingTableAddRow = (rank, name, number_receive, add_type) => {
+        switch (add_type) {
+          case 0:
+            $(".ranking_table").append(`              <li class="flex py-5">
+                <div class="flex-1 content-center text-center">
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="nextMonthRanking(this)"
+                  >
+                    ◀
+                  </div>
+                  <p class="inline">3월 랭킹</p>
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="prevMonthRanking(this)"
+                  >
+                    ▶
+                  </div>
+                </div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">랭킹</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">이름</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">운동 일수</p>
+                  </div>
+                </div>
+              </li>`);
+            break;
+          case 1:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5">
+                <div class="flex-1 content-center text-center"></div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${name}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          case 2:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5 bg-[#eeeeee] rounded-[15px]">
+                <div class="flex-1 content-center text-center">나의 랭킹</div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          default:
+            "";
+            break;
+        }
+      };
+      const rankingSetting = () => {
         $.ajax({
           type: "get",
           url: "",
           data: {},
           success: (response) => {
+            $(".ranking_table").empty();
+
+            rankingTableAddRow("");
+          },
+        });
+      };
+
+      // Chart
+      const setPopularFunction = () => {
+        $().ajax({
+          type: "get",
+          url: "",
+          data: {},
+          success: (response) => {
             const ctx = document.getElementById("myChart");
-            const day_array = Object.keys(response);
+            const last_date = 12;
+
+            dashboard_color_array = [
+              "from-[#038002]",
+              "from-red-600",
+              "from-yellow-400",
+            ];
+            for (i = 0; i < dashboard_color_array.length; i++) {
+              $(".dash_board_popular").removeClass(dashboard_color_array[i]);
+            }
+            if (last_date < 15) {
+              $(".dash_board_popular").addClass("from-[#038002]");
+            } else if (last_date >= 15 && last_date < 30) {
+              $(".dash_board_popular").addClass("from-yellow-600");
+            } else {
+              $(".dash_board_popular").addClass("from-red-600");
+            }
+            $(".total_excersize_number").text(last_date);
+            // 백엔드와 협의 필요
+            const day_array = Object.keys(request);
             const people_array = [];
             for (let i = 0; i < day_array.length; i++) {
               people_array.push(response[day_array[i]]);
             }
 
+            // "2016-10-20 17:23:00"
             new Chart(ctx, {
               type: "line",
               data: {
@@ -296,8 +407,18 @@
                 ],
               },
               options: {
+                plugins: { legend: { display: false } },
                 maintainAspectRatio: false,
                 scales: {
+                  x: {
+                    type: "time",
+                    time: {
+                      unit: "hour",
+                      displayFormats: {
+                        hour: "H:mm",
+                      },
+                    },
+                  },
                   y: {
                     beginAtZero: true,
                   },
@@ -307,6 +428,83 @@
           },
         });
       };
+
+      const ctx = document.getElementById("myChart");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["2026-03-05 00:00:00", "2026-03-05 23:59:00"],
+          datasets: [
+            {
+              label: "현재 인원",
+              data: [
+                { x: "2026-03-05 10:00:00", y: 12 },
+                { x: "2026-03-05 11:00:00", y: 19 },
+                { x: "2026-03-05 12:00:00", y: 7 },
+              ],
+              borderColor: "blue",
+              borderWidth: 2,
+            },
+            {
+              label: "과거 인원",
+              data: [
+                { x: "2026-03-05 10:00:00", y: 6 },
+                { x: "2026-03-05 11:00:00", y: 9 },
+                { x: "2026-03-05 12:00:00", y: 17 },
+              ],
+              borderColor: "red",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "hour",
+                displayFormats: {
+                  hour: "H:mm",
+                },
+              },
+              grid: {
+                display: false,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: false,
+              },
+              ticks: {
+                display: false,
+              },
+              border: {
+                display: false,
+              },
+            },
+          },
+        },
+      }); // render
+      const testRanking = [
+        { gen: "12기", id: "asd", name: "asd", number_receive: "12" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "13" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "14" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "15" },
+        { gen: "12기", id: "asd", name: "asd", number_receive: "16" },
+      ];
+      $(".ranking_table").empty();
+      rankingTableAddRow(0, "", 0, 0);
+      const RankingKey = Object.keys(testRanking);
+      for (i = 0; i < (testRanking.length < 5 ? 5 : testRanking.length); i++) {
+        let rankingName = testRanking[i]["name"];
+        let number_receive = testRanking[i]["number_receive"];
+        let ranking = i + 1;
+        rankingTableAddRow(ranking, rankingName, number_receive, 1);
+      }
+      rankingTableAddRow(5, name, 5, 2);
     </script>
   </body>
 </html>
