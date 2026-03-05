@@ -12,6 +12,7 @@ from flask.json.provider import JSONProvider
 from bson import ObjectId
 import json
 import sys
+from collections import defaultdict
 
 load_dotenv()
 
@@ -345,7 +346,7 @@ threading.Thread(target=save_gymdata_by_1hour, daemon=True).start()
 ##############################################
 # 기록 관련
 #
-# 시간 형식 %Y-%m-%d %H    예시 -> 2026-03-05 15
+# 시간 형식 %Y-%m-%d %H    예시 -> 2026-03-05 15 -> 롤백 그냥 datetime 사용
 #
 # 1. 전체 기록 클라이언트로 전송
 # 2. 기간 선택해서 클라이언트로 전송
@@ -388,16 +389,73 @@ def get_totad_complex():
 
 #     })
 
-# # 랭킹 계산 하루에 한 번
-# def save_total_rank():
-#     calc_rank_data = use_history_collection.find()
+# 전체 기록 하루 중복 제거
+def total_use_days_data():
+    total_use_days_data = list(db.USE_HISTORY.aggregate([
+  {
+    "$group": {
+      "_id": {
+        "id": "$id",
+        "date": {
+          "$dateToString": {
+            "format": "%Y-%m-%d",
+            "date": "$start_datetime"
+          }
+        }
+      },
+      "doc": { "$first": "$$ROOT" }
+    }
+  },
+  {
+    "$replaceRoot": {
+      "newRoot": "$doc"
+    }
+  }
+]))
+    return total_use_days_data
 
+# 달별 유저 헬스 이용 데이터 (같은날 중복 제거)
+def month_use_days_data(month):
+    data = total_use_days_data()
+    result = []
+    for doc in data:
+        if doc["start_datetime"].month == month:
+            result.append(doc)
+    
+    return result
 
-# # 탑5 랭커 가져오기
-# @app.route("/get_top5_rank", methods=["GET"])
-# def get_top5_rank():
-#     top5_rank = rank_data_collection.find()
-#     return jsonify(top5_rank)
+# 이번 달 전체 랭킹 반환
+@app.route("/rank_month<int:month>", methods=["GET"])
+def get_month_rank(month):
+
+    data = month_use_days_data(month)
+    user_count = defaultdict(int)
+
+    # 유저별 출석일수 계산
+    for doc in data:
+        user_id = doc["id"]
+        user_count[user_id] += 1
+
+    # 출석일수 기준 정렬
+    sorted_users = sorted(
+        user_count.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    result = []
+
+    # 랭킹 생성
+    for rank, (user_id, count) in enumerate(sorted_users, start=1):
+        result.append({
+            "rank": rank,
+            "id": user_id,
+            "days": count
+        })
+
+    return result
+    
+
 
 
 ##############################################
