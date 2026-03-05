@@ -486,7 +486,7 @@ def get_month_history():
 
 @app.route("/get_now_complex", methods=["GET"])
 def get_now_complex():
-    now_complex_data = gym_data_collection.find({"datetime": "now"})
+    now_complex_data = gym_data_collection.find({"now": "now"})
 
     return jsonify(list(now_complex_data))
 
