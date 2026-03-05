@@ -69,6 +69,10 @@ def home():
 def joinhome():
     return render_template("join.html")
 
+@app.route("/dev/home")
+def go_dev_home():
+    return render_template("home3.html")
+
 @app.route("/edit")
 @jwt_required()
 def go_edit():
