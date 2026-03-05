@@ -30,7 +30,7 @@
     <!-- 오른쪽 영역 -->
     <div class="mx-auto p-8 flex-[2]">
       <div class="signup_menu flex flex-col gap-6">
-        <form id="edit_form" methods="POST" action="/profile-edit" class="space-y-4">
+        <form id="edit_form" method="POST" action="/profile-edit" class="space-y-4">
           <!-- 이름 -->
           <div class="flex flex-col gap-1">
             <label for="name" class="text-base font-medium text-black">이름</label>
@@ -76,7 +76,7 @@
             </div>
           </div>
         </form>
-        <form id="delete_form" methods="POST" action="/delete" class="w-[50%] flex justify-end">
+        <form id="delete_form" method="POST" action="/delete" class="w-[50%] flex justify-end">
           <button id="delete_btn" type="submit" class="w-32 underline hover:text-gray-400 p-2 text-center">
             회원탈퇴
           </button>
@@ -122,7 +122,7 @@
         if (!ok) return;
         try {
           const res = await fetch("/delete", {
-            methods: "POST",
+            method: "POST",
             credentials: "include"
           });
           if (!res.ok) throw new Error("delete failed");
