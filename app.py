@@ -50,8 +50,8 @@ app.json = CustomJSONProvider(app)
 # #####################################################################################
 
 
-# client = MongoClient('mongodb://admin:admin@10.0.134.192', 27017)
-client = MongoClient(os.environ.get("MONGO_URI"), 27017)
+client = MongoClient('mongodb://admin:admin@10.0.134.192', 27017)
+#client = MongoClient(os.environ.get("MONGO_URI"), 27017)
 db = client["junglegym"]
 user_collection = db["USER"]
 use_history_collection = db["USE_HISTORY"]
@@ -289,7 +289,7 @@ def gym_start():
     history = {
         "id": current_user,
         "start_datetime": datetime.now(),
-        "end_datetime": "",
+        "end_datetime": None,
     }
 
     use_history_collection.insert_one(history)
@@ -303,7 +303,7 @@ def gym_start():
 def gym_end():
     current_user_id = get_jwt_identity()
     active_history = use_history_collection.find_one(
-        {"id": current_user_id, "end_datetime": ""}, sort=[("start_datetime", -1)]
+        {"id": current_user_id, "end_datetime": None}, sort=[("start_datetime", -1)]
     )
     if active_history:
         use_history_collection.update_one(
@@ -587,6 +587,16 @@ def get_month_rank(month):
         result.append({"rank": rank, "name": target["name"], "days": count})
 
     return jsonify(result)
+
+@app.route("/check_started", methods=["GET"])
+@jwt_required()
+def check_started():
+    current_user = get_jwt_identity()
+    if use_history_collection.find_one({"id": current_user, "end_datetime": None}):
+        return "이미출근"
+    else:
+        return "미출근"
+
 
 
 ##############################################
