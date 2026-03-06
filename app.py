@@ -450,7 +450,7 @@ def get_week_history():
     user_history_list = list(
     use_history_collection.find({
         "id": current_user,
-        "end_datetime": {"$ne": ""}
+        "end_datetime": {"$ne": None}
     })
 )
     new_data = []
@@ -477,7 +477,7 @@ def get_month_history():  # 나의 기록
     user_history_list = list(
     use_history_collection.find({
         "id": current_user,
-        "end_datetime": {"$ne": ""}
+        "end_datetime": {"$ne": None}
     })
 )
 
