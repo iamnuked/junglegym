@@ -70,13 +70,13 @@
           <!-- 메뉴 -->
           <div class="login_pannel space-y-6" id="menu_section">
             <button
-              class="font_medium dash_board_pannel rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+              class="dashboard_menu_btn font_medium dash_board_pannel rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
               onclick="dashBoardButton(this)">
               홈
             </button>
             {% if user %}
             <button
-              class="font_medium record font_medium rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+              class="record_menu_btn font_medium record font_medium rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
               onclick="recordButton(this)">
               나의 기록
             </button>
@@ -227,8 +227,6 @@
             pw_give: login_password,
           },
           success: (response) => {
-            localStorage.setItem("loginStatus",true)
-            console.log(response);
             if (response.success) {
               location.reload();
             } else { alert(response["result"]) }
@@ -242,8 +240,6 @@
           type: "post",
           url: "/logout",
           success: (response) => {
-            localStorage.setItem("loginStatus",false)
-            console.log(response);
             if (response.success) {
               location.reload();
             }
@@ -356,10 +352,12 @@
       const dashBoardButton = (e) => {
         $(".home_menu").removeClass("hidden");
         $(".my_record").addClass("hidden");
+        localStorage.setItem("presentMenu",0)
       };
       const recordButton = (e) => {
         $(".home_menu").addClass("hidden");
         $(".my_record").removeClass("hidden");
+        localStorage.setItem("presentMenu",1)
         // 주간 기록 버튼 클릭 이벤트 실행
         drawWeeklyChart();
       };
@@ -372,7 +370,6 @@
       const fontSizeConverter = (className) => {
         // 3. CSS 변수 값을 변경하기 위해 element.style.setProperty() 함수를 사용합니다.
         const targetElement = document.querySelector(`.${className}`);
-        console.log(targetElement);
         const height = $(window).height();
         const width = $(window).width();
         const font_size = targetElement.getPropertyValue("--font-size");
@@ -819,7 +816,6 @@
           url: "/get_week_history",
           xhrFields: { withCredentials: true },
           success: (response) => {
-            console.log(response)
             const labels = ["월", "화", "수", "목", "금", "토", "일"];
             const data = new Array(7).fill(0);
 
@@ -847,7 +843,6 @@
           url: "/get_month_history",
           xhrFields: { withCredentials: true },
           success: (response) => {
-            console.log(response)
             const labels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
             const data = new Array(12).fill(0);
 
@@ -871,7 +866,18 @@
       
 
       window.onload = function() {
-          startEndCheck();
+          if ($(".exercise_btn").length === 1 ? true : false) {
+            localStorage.setItem("loginStatus",true)
+            startEndCheck();
+          } else {
+            localStorage.setItem("loginStatus",false);
+            localStorage.setItem("presentMenu",0);
+          }
+          if (localStorage.getItem("presentMenu") === "0") {
+            dashBoardButton();
+          } else if (localStorage.getItem("presentMenu") === "1") {
+            recordButton();
+          }
       }
 
       function startEndCheck() {
@@ -879,7 +885,6 @@
             type:"get",
             url:"/check_started",
             success:(response)=>{
-              console.log(response)
               if (response === "이미출근") {
                 exerciseStartEndMaker(true)
               }
@@ -891,12 +896,7 @@
             }
           })
       }
-
-
-      localStorage.setItem("menuStatus",1)
-      console.log("set")
-
-      // console.log(localStorage.getItem("menuStatus"))
+      setInterval(setPopularFunction(),3600000)
     </script>
 </body>
 
