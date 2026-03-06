@@ -390,6 +390,7 @@
           },
           success: (response) => {
             exerciseStartEndMaker(true);
+            setPopularFunction()
           },
         });
       };
@@ -404,7 +405,7 @@
           },
           success: (response) => {
             exerciseStartEndMaker(false);
-            location.reload();
+            setPopularFunction()
           },
         });
       };
@@ -630,12 +631,11 @@
           url: "/get_now_complex",
           data: {},
           success: (response) => {
+            console.log("success")
             now_count = response[0]["count"]
             now_date_time = response[0]["datetime"]
             $(".total_exercize_number").text(now_count)
-          }
-        })
-        const last_date = $(".total_exercize_number").text();
+        const last_date = now_count;
         dashboard_color_array = [
           "from-[#038002]",
           "from-red-600",
@@ -646,6 +646,7 @@
           "text-black",
           "font-bold"
         ]
+        console.log(last_date)
         for (i = 0; i < dashboard_color_array.length; i++) {
           $(".dash_board_popular").removeClass(dashboard_color_array[i]);
         }
@@ -665,6 +666,8 @@
           $(".dash_board_popular").addClass("from-red-600");
           $(".gym_status").text("혼잡").addClass("font-bold").addClass("text-white")
         }
+          }
+        })
 
 
         $.ajax({
@@ -673,8 +676,6 @@
           data: {},
           success: (response) => {
             const ctx = document.getElementById("myChart");
-
-            $(".total_excersize_number").text(last_date);
             // 백엔드와 협의 필요
             // const day_array = Object.keys(request);
             // const people_array = [];

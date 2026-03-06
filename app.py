@@ -50,8 +50,8 @@ app.json = CustomJSONProvider(app)
 # #####################################################################################
 
 
-client = MongoClient('mongodb://admin:admin@10.0.134.192', 27017)
-#client = MongoClient(os.environ.get("MONGO_URI"), 27017)
+client = MongoClient("mongodb://admin:admin@10.0.134.192", 27017)
+# client = MongoClient(os.environ.get("MONGO_URI"), 27017)
 db = client["junglegym"]
 user_collection = db["USER"]
 use_history_collection = db["USE_HISTORY"]
@@ -310,7 +310,7 @@ def gym_end():
             {"_id": active_history["_id"]},
             {"$set": {"end_datetime": datetime.now()}},
         )
-        gym_data_collection.update_one({"datetime": "now"}, {"$inc": {"count": -1}})
+        gym_data_collection.update_one({"now": "now"}, {"$inc": {"count": -1}})
         return {"result": "success"}
     else:
         return {"result": "no_active_data"}
@@ -322,7 +322,7 @@ def delete():
     current_user = get_jwt_identity()
     user_collection.delete_one({"id": current_user})
     response = jsonify({"result": "회원 탈퇴 성공"})
-    unset_jwt_cookies(response)   # JWT 쿠키 삭제
+    unset_jwt_cookies(response)  # JWT 쿠키 삭제
     return response
 
 
@@ -387,7 +387,7 @@ def save_gymdata_by_1hour():
         if now.hour != last_hour:
             last_hour = now.hour
             now_gym_count = gym_data_collection.find_one({"now": "now"})
-            gym_data_collection.update_one({"now": "now"}, {"$set": None})
+            gym_data_collection.update_one({"now": "now"}, {"$set": ""})
             gym_data_collection.insert_one(
                 {
                     "now": "now",
@@ -448,24 +448,19 @@ def get_week_history():
     start_jungle_date = datetime(2026, 3, 2)
     # user_history_list = list(use_history_collection.find({"id": current_user}))
     user_history_list = list(
-    use_history_collection.find({
-        "id": current_user,
-        "end_datetime": {"$ne": None}
-    })
-)
+        use_history_collection.find({"id": current_user, "end_datetime": {"$ne": None}})
+    )
     new_data = []
     for target in user_history_list:
         diff = (target["end_datetime"] - start_jungle_date).days
         week = diff // 7 + 1
-        day = diff % 7 # 요일
+        day = diff % 7  # 요일
 
-        use_time = (target["end_datetime"] - target["start_datetime"]).total_seconds() / 60
+        use_time = (
+            target["end_datetime"] - target["start_datetime"]
+        ).total_seconds() / 60
 
-        new_data.append({
-            "week": week,
-            "day": day,
-            "time": use_time
-        })
+        new_data.append({"week": week, "day": day, "time": use_time})
     return jsonify(new_data)
 
 
@@ -475,11 +470,8 @@ def get_month_history():  # 나의 기록
     current_user = get_jwt_identity()
     # user_history_list = list(use_history_collection.find({"id": current_user}))
     user_history_list = list(
-    use_history_collection.find({
-        "id": current_user,
-        "end_datetime": {"$ne": None}
-    })
-)
+        use_history_collection.find({"id": current_user, "end_datetime": {"$ne": None}})
+    )
 
     sum_time = defaultdict(int)
 
@@ -588,6 +580,7 @@ def get_month_rank(month):
 
     return jsonify(result)
 
+
 @app.route("/check_started", methods=["GET"])
 @jwt_required()
 def check_started():
@@ -596,7 +589,6 @@ def check_started():
         return "이미출근"
     else:
         return "미출근"
-
 
 
 ##############################################
