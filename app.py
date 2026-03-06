@@ -387,7 +387,7 @@ def save_gymdata_by_1hour():
         if now.hour != last_hour:
             last_hour = now.hour
             now_gym_count = gym_data_collection.find_one({"now": "now"})
-            gym_data_collection.update_one({"now": "now"}, {"$set": ""})
+            gym_data_collection.update_one({"now": "now"}, {"$set": None})
             gym_data_collection.insert_one(
                 {
                     "now": "now",
