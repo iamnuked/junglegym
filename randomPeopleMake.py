@@ -89,7 +89,7 @@ for gym_datetime in location_setting:  # 6시~21시
                 {
                     "id": shuffled_user[i]["id"],
                     "start_datetime": gym_datetime - timedelta(minutes=minus_duration),
-                    "end_datetime": "",
+                    "end_datetime": None,
                 }
             )
 

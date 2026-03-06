@@ -27,6 +27,7 @@
               class="login_id_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition" />
             <input type="password" placeholder="PWD"
               class="login_password_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition" />
+              
             <button
               class="font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
               onclick="loginButton(this)">
@@ -226,6 +227,7 @@
             pw_give: login_password,
           },
           success: (response) => {
+            localStorage.setItem("loginStatus",true)
             console.log(response);
             if (response.success) {
               location.reload();
@@ -240,6 +242,7 @@
           type: "post",
           url: "/logout",
           success: (response) => {
+            localStorage.setItem("loginStatus",false)
             console.log(response);
             if (response.success) {
               location.reload();
@@ -498,7 +501,6 @@
       
       const renderRankingSystem = () => {
         const month = new Date();
-        console.log(month.getMonth()+1)
         $.ajax({
           type:"get",
           url:`/rank_month/${month.getMonth() + 1}`,
@@ -866,6 +868,35 @@
           }
         });
       }
+      
+
+      window.onload = function() {
+          startEndCheck();
+      }
+
+      function startEndCheck() {
+          $.ajax({
+            type:"get",
+            url:"/check_started",
+            success:(response)=>{
+              console.log(response)
+              if (response === "이미출근") {
+                exerciseStartEndMaker(true)
+              }
+              else {
+                exerciseStartEndMaker(false)
+              }
+              
+              
+            }
+          })
+      }
+
+
+      localStorage.setItem("menuStatus",1)
+      console.log("set")
+
+      // console.log(localStorage.getItem("menuStatus"))
     </script>
 </body>
 
