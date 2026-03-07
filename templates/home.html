@@ -1,3 +1,4 @@
+<<<<<<< ours
 <!doctype html>
 <html lang="ko">
 
@@ -901,4 +902,911 @@
     </script>
 </body>
 
+=======
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <script src="https://code.jquery.com/jquery-4.0.0.js" integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+
+<body>
+  <div class="p-3 flex flex-col min-h-screen">
+    <div class="">
+      <p class="font_medium">정글러의 득근득근한 생활을 위한</p>
+      <p class="font_large font-bold">Jung/eGYM</p>
+    </div>
+    <div class="flex flex-1 flex-row">
+      <div class="flex-2 flex flex-col">
+        <div class="outline-2 rounded-[15px] space-y-7 flex-1">
+          <!-- 로그인 전에 보일 부분 -->
+          {% if not user %}
+          <div class="login_pannel space-y-4" id="login_section">
+            <input type="text" placeholder="ID"
+              class="login_id_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition" />
+            <input type="password" placeholder="PWD"
+              class="login_password_btn font_medium rounded-lg bg-[#dddddd] border-none focus:ring-2 focus:ring-black-600 focus:outline-none w-full p-4 transition" />
+              
+            <button
+              class="font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+              onclick="loginButton(this)">
+              로그인
+            </button>
+            <button
+              class="font_medium register font_medium rounded-lg outline-[#dddddd] outline-2 border-none w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+              onclick="registerButton(this)">
+              회원가입 후 운동기록하기
+            </button>
+          </div>
+          {% endif %}
+          <!-- 로그인 후에 보일 부분 -->
+          {% if user %}
+          <div class="login_pannel space-y-6" id="user_section">
+            <div class="flex items-start justify-between">
+              <!-- 왼쪽 텍스트 -->
+              <span id="txt_welcome" class="leading-relaxed text-black">
+                {{ user.name }}님의<br />
+                건강한 정글 생활을 응원합니다
+              </span>
+
+              <!-- 오른쪽 버튼 -->
+              <a href="/edit" class="flex-shrink-0">
+                <img src="{{ url_for('static', filename='icons/edit.svg') }}" class="w-6 h-6" />
+              </a>
+            </div>
+            <div class="exercise_btn">
+              <button
+                class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                onclick="exerciseStartAPI(this)">
+                GYM출근
+              </button>
+            </div>
+            <button class="w-full text-center underline" onclick="logoutButton(this)">
+              로그아웃
+            </button>
+          </div>
+          {% endif %}
+          <!-- 메뉴 -->
+          <div class="login_pannel space-y-6" id="menu_section">
+            <button
+              class="dashboard_menu_btn font_medium dash_board_pannel rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+              onclick="dashBoardButton(this)">
+              홈
+            </button>
+            {% if user %}
+            <button
+              class="record_menu_btn font_medium record font_medium rounded-lg outline-[#dddddd] outline-2 w-full p-4 hover:outline-black hover:outline-2 active:bg-yellow-50 transition"
+              onclick="recordButton(this)">
+              나의 기록
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="main_menu flex-8 flex flex-col ml-1">
+        <!--홈메뉴-->
+        <div class="home_menu flex-8 flex flex-col" h>
+          <div
+            class="dash_board_popular mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-linear-to-b from-[#038002] to-white from-9% to-9% flex-7">
+            <div>
+              <p class="gym_status font_small text-white">원할</p>
+            </div>
+            <div>
+              <p class="font_small">
+                현재 정글짐을 사용해 GYM에서 운동 중인 정글러는
+              </p>
+            </div>
+            <div>
+              <p class="font_small">
+                총
+                <span class="total_exercize_number font_small font-bold">10</span>명 입니다.
+              </p>
+            </div>
+            <div class="w-[100%] h-[60%]">
+              <canvas id="myChart"></canvas>
+            </div>
+          </div>
+          <div class="login_menu grid grid-cols-1 gap-4 mx-2 mt-2 p-3 outline-2 flex-8">
+            <div class="ranking_table m-4"></div>
+          </div>
+        </div>
+        <!--나의 기록 메뉴-->
+        <div class="my_record [100%] h-[100%] hidden">
+          <div class="mx-2 mb-2 p-3 outline-2 rounded-t-[15px] bg-white flex-7">
+            <!-- 그래프 튀지 않게 부모 높이 지정 -->
+            <div class="flex w-full gap-4 h-full">
+              <!-- 기록 버튼 영역-->
+              <div class="w-1/5 bg-white h-full flex justify-center items-center">
+                <div class="flex flex-col gap-15">
+
+                  <button id="btn-week"
+                    class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
+                    주간 기록
+                  </button>
+
+                  <button id="btn-month"
+                    class="w-32 h-14 rounded-lg bg-gray-200 font-medium hover:bg-gray-300 transition">
+                    월간 기록
+                  </button>
+                </div>
+              </div>
+              <div class="bg-white h-[380px]">
+                <canvas id="periodChart" class="w-full h-full"></canvas>
+              </div>
+            </div>
+          </div>
+          <!-- 운동 기록 목록 -->
+          <div class="history_table grid grid-cols-1 gap-4 mx-2 mt-2 p-4 outline-2 flex-8">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center w-full">
+                <span class="mx-3 text-lg font-medium">운동 기록 목록</span>
+              </div>
+
+              <div class="flex items-center gap-2 ml-4">
+
+                <div class="flex gap-2">
+
+                  <button class="bg-gray-100 hover:bg-gray-200 rounded-md h-10 px-3 text-sm whitespace-nowrap">
+                    전체 기간
+                  </button>
+
+                  <!-- <a href="/edit"
+                    class="bg-gray-100 hover:bg-gray-200 rounded-md h-10 px-2 flex items-center justify-center">
+                    <img src="{{ url_for('static', filename='icons/calendar.svg') }}" class="w-7 h-7">
+                  </a> -->
+
+                </div>
+
+              </div>
+
+            </div>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">시간</th>
+                </tr>
+              </thead>
+              <tbody id="history_tbody">
+                {% for item in history %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {{ item.start_datetime.strftime("%Y-%m-%d") }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {{ item.start_datetime.strftime("%H:%M") }}
+                    ~
+                    {% if item.end_datetime %}
+                    {{ item.end_datetime.strftime("%H:%M") }}
+                    {% else %}
+                    진행중
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- 페이지네이션 -->
+            <div class="flex justify-center mt-4 space-x-2" id="pagination">
+
+              <!-- 이전 버튼 -->
+              {% if page > 1 %}
+              <button onclick="loadHistoryPage({{ page-1 }})" class="px-3 py-1">
+                < </button>
+                  {% endif %}
+
+                  <span class="px-3 py-1 text-gray-800">
+                    {{ page }}
+                  </span>
+
+                  {% if page < total_pages %} <button onclick="loadHistoryPage({{ page+1 }})"
+                    class="px-3 py-1">
+                    >
+              </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      // 로그인 스크립트
+      function loginButton(e) {
+        // 로그인 버튼
+        const login_id = $(".login_id_btn").val();
+        const login_password = $(".login_password_btn").val();
+
+        $.ajax({
+          type: "post",
+          url: "/login",
+          data: {
+            id_give: login_id,
+            pw_give: login_password,
+          },
+          success: (response) => {
+            if (response.success) {
+              location.reload();
+            } else { alert(response["result"]) }
+          },
+        });
+      }
+
+      // 로그아웃 버튼
+      function logoutButton(e) {
+        $.ajax({
+          type: "post",
+          url: "/logout",
+          success: (response) => {
+            if (response.success) {
+              location.reload();
+            }
+          },
+        });
+      }
+
+      function loadHistoryPage(page) {
+        $.ajax({
+          type: "GET",
+          url: "/get_history?page=" + page,
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function (res) {
+            renderTable(res.history);
+            renderPagination(res.page, res.total_pages);
+          }
+        });
+      }
+
+      function renderTable(history) {
+        let rows = "";
+
+        history.forEach(item => {
+          let start = new Date(item.start_datetime);
+          let end = item.end_datetime ? new Date(item.end_datetime) : null;
+
+          rows += `
+      <tr>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${formatDate(start)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${formatTime(start)} ~ ${end ? formatTime(end) : "진행중"}
+        </td>
+      </tr>
+    `;
+        });
+
+        $("#history_tbody").html(rows);
+      }
+
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatTime(date) {
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        return `${hour}:${minute}`;
+      }
+
+      function renderPagination(page, total_pages) {
+        let pagination = "";
+
+        if (page > 1) {
+          pagination += `
+      <button onclick="loadHistoryPage(${page - 1})"
+        class="px-3 py-1">
+        <
+      </button>
+    `;
+        }
+
+        pagination += `
+
+    <span class="px-3 py-1 text-gray-800">
+      ${page}
+    </span>
+  `;
+
+        if (page < total_pages) {
+          pagination += `
+      <button onclick="loadHistoryPage(${page + 1})"
+        class="px-3 py-1">
+        >
+      </button>
+    `;
+        }
+
+        $("#pagination").html(pagination);
+      }
+
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatTime(date) {
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        return `${hour}:${minute}`;
+      }
+
+      // 회원등록 버튼
+      const registerButton = (e) => {
+        window.location.href = "/join_home";
+      };
+      // 대시보드 메뉴
+      const dashBoardButton = (e) => {
+        $(".home_menu").removeClass("hidden");
+        $(".my_record").addClass("hidden");
+        localStorage.setItem("presentMenu",0)
+      };
+      const recordButton = (e) => {
+        $(".home_menu").addClass("hidden");
+        $(".my_record").removeClass("hidden");
+        localStorage.setItem("presentMenu",1)
+        // 주간 기록 버튼 클릭 이벤트 실행
+        drawWeeklyChart();
+      };
+
+      const rootStyles = window.getComputedStyle(document.documentElement);
+
+      const mainColorValue = rootStyles.getPropertyValue("--main-color");
+      const fontSizeValue = rootStyles.getPropertyValue("--font-size");
+
+      const fontSizeConverter = (className) => {
+        // 3. CSS 변수 값을 변경하기 위해 element.style.setProperty() 함수를 사용합니다.
+        const targetElement = document.querySelector(`.${className}`);
+        const height = $(window).height();
+        const width = $(window).width();
+        const font_size = targetElement.getPropertyValue("--font-size");
+        targetElement.style.setProperty("-color", "red");
+        targetElement.style.setProperty("--font-size", "100px");
+      };
+      // fontSizeConverter("font_large");
+
+      // 출근 / 퇴근 버튼 API
+
+      const exerciseStartAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_start",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(true);
+            setPopularFunction()
+            location.reload();
+          },
+        });
+      };
+
+      const exerciseEndAPI = (e) => {
+        $.ajax({
+          type: "post",
+          url: "/gym_end",
+          data: {},
+          xhrFields: {
+            withCredentials: true,
+          },
+          success: (response) => {
+            exerciseStartEndMaker(false);
+            setPopularFunction()
+            location.reload();
+          },
+        });
+      };
+
+      const exerciseStartEndMaker = (isStart) => {
+        $(".exercise_btn").empty();
+        if (!isStart) {
+          $(".exercise_btn").append(`                <button
+                  class="start_btn font_medium rounded-lg bg-blue-600 text-white border-none w-full p-4 hover:outline-blue-800 hover:outline-2 active:bg-blue-800 transition"
+                  onclick="exerciseStartAPI(this)"
+                >
+                  GYM출근
+                </button>`);
+        } else {
+          $(".exercise_btn").append(
+            $(".exercise_btn").append(`                <button
+                  class="end_btn font_medium rounded-lg bg-red-600 text-white border-none w-full p-4 hover:outline-red-800 hover:outline-2 active:bg-red-800 transition"
+                  onclick="exerciseEndAPI(this)"
+                >
+                  GYM퇴근
+                </button>`),
+          );
+        }
+      };
+
+      // 테이블 랭킹
+      const rankingTable = () => {
+        // jinja2 받을 부분
+        const ranking_table = {
+          ranking: 1,
+          name: "김일일",
+          number_receive: 10,
+        };
+      };
+      const nextMonthRanking = (e) => {
+        const month = $(".month_ranking").text()
+        
+        const today = new Date();
+        if (Number(month) === today.getMonth()+1 || Number(month)+1 > 12 ){
+          renderRankingSystem()
+          return ;
+        }
+
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${Number(month)+1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,Number(month)+1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+      
+      const prevMonthRanking = (e) => {
+        const month = $(".month_ranking").text()
+        
+
+        
+        const today = new Date();
+        if (Number(month) - 1 === 0){
+          renderRankingSystem()
+          return ;
+        }
+
+
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${month-1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,month-1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+      
+      const renderRankingSystem = () => {
+        const month = new Date();
+        $.ajax({
+          type:"get",
+          url:`/rank_month/${month.getMonth() + 1}`,
+          success:(response)=>{
+            $(".ranking_table").empty();
+            rankingTableAddRow("1","1","1",0,month.getMonth() + 1)
+            // {"rank": rank, "id": user_id, "days": count})
+            for (let i = 0;i<(response.length > 5?5:response.length);i++) {
+              const res_rank = response[i]["rank"]
+              const res_name = response[i]["name"]
+              const res_count = response[i]["days"]
+              rankingTableAddRow(res_rank,res_name,res_count,1)
+            
+            }
+          }
+        })
+      }
+
+      const rankingTableAddRow = (rank, name, number_receive, add_type,month=3) => {
+        switch (add_type) {
+          case 0:
+            $(".ranking_table").append(`              <li class="flex py-5">
+                <div class="flex-1 content-center text-center">
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="prevMonthRanking(this)"
+                  >
+                    ◀
+                  </div>
+                  <p class="inline"><span class="month_ranking">${month}</span>월 랭킹</p>
+                  <div
+                    class="inline select-none text-blue-600 hover:text-blue-800"
+                    onclick="nextMonthRanking(this)"
+                  >
+                    ▶
+                  </div>
+                </div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">랭킹</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">이름</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">운동 일수</p>
+                  </div>
+                </div>
+              </li>`);
+            break;
+          case 1:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5">
+                <div class="flex-1 content-center text-center"></div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${name}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          case 2:
+            $(".ranking_table").append(
+              `
+              <li class="flex py-5 bg-[#eeeeee] rounded-[15px]">
+                <div class="flex-1 content-center text-center">나의 랭킹</div>
+                <div class="flex flex-5">
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${rank}</p>
+                  </div>
+                  <div class="flex-1 content-center text-center">
+
+                  </div>
+                  <div class="flex-1 content-center text-center">
+                    <p class="inline">${number_receive}일</p>
+                  </div>
+                </div>
+              </li>`,
+            );
+            break;
+          default:
+            "";
+            break;
+        }
+      };
+      const rankingSetting = () => {
+        $.ajax({
+          type: "get",
+          url: "",
+          data: {},
+          success: (response) => {
+            $(".ranking_table").empty();
+
+            rankingTableAddRow("");
+          },
+        });
+      };
+
+      // Chart
+      let nowPopularPeople = 0;
+      const popularHealthLocation = () => {
+        $.ajax({
+          type: "get",
+          url: "get_now_complex",
+          data: {},
+          success: (response) => {
+            nowPopularPeople = response.length;
+          },
+        });
+      };
+
+
+
+
+      let now_count = 0;
+      let now_date_time = "";
+      let total_list = [];
+
+      const setPopularFunction = () => {
+        $.ajax({
+          type: "get",
+          url: "/get_now_complex",
+          data: {},
+          success: (response) => {
+            console.log("success")
+            now_count = response[0]["count"]
+            now_date_time = response[0]["datetime"]
+            $(".total_exercize_number").text(now_count)
+        const last_date = now_count;
+        dashboard_color_array = [
+          "from-[#038002]",
+          "from-red-600",
+          "from-yellow-400",
+        ];
+        dashboard_text_color_array = [
+          "text-white",
+          "text-black",
+          "font-bold"
+        ]
+        console.log(last_date)
+        for (i = 0; i < dashboard_color_array.length; i++) {
+          $(".dash_board_popular").removeClass(dashboard_color_array[i]);
+        }
+        for (i = 0; i < dashboard_text_color_array.length; i++) {
+          $(".gym_status").removeClass(dashboard_text_color_array[i])
+        };
+        if (last_date < 15) {
+          $(".dash_board_popular").addClass("from-[#038002]");
+
+          $(".gym_status").text("원할").addClass("text-white")
+        } else if (last_date >= 15 && last_date < 30) {
+          $(".dash_board_popular").addClass("from-yellow-600");
+
+          $(".gym_status").text("다소혼잡").addClass("text-black")
+
+        } else {
+          $(".dash_board_popular").addClass("from-red-600");
+          $(".gym_status").text("혼잡").addClass("font-bold").addClass("text-white")
+        }
+          }
+        })
+
+
+        $.ajax({
+          type: "get",
+          url: "/get_today_complex",
+          data: {},
+          success: (response) => {
+            const ctx = document.getElementById("myChart");
+            // 백엔드와 협의 필요
+            // const day_array = Object.keys(request);
+            // const people_array = [];
+            // for (let i = 0; i < day_array.length; i++) {
+            //   people_array.push(response[day_array[i]]);
+            // }
+
+            // "2016-10-20 17:23:00"
+            present_dataset = []
+            for (let i = 0; i < response.length; i++) {
+              data = response[i];
+              x = "2026-03-06 " + data["datetime"].split("T")[1].split(":")[0];
+              y = data["count"]
+              present_dataset.push({ x: x, y: y })
+            }
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: ["2026-03-06 00", "2026-03-06 23"],
+                datasets: [
+                  {
+                    label: "현재 인원",
+                    data: present_dataset,
+                    borderColor: "blue",
+                    borderWidth: 2,
+                  },
+                  {
+                    label: "과거 인원",
+                    data: [
+                    ],
+                    borderColor: "red",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    type: "time",
+                    time: {
+                      unit: "hour",
+                      displayFormats: {
+                        hour: "HH",
+                      },
+                    },
+                    grid: {
+                      display: false,
+                    },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      display: false,
+                    },
+                    border: {
+                      display: false,
+                    },
+                  },
+                },
+              },
+            });
+          }
+        })
+      };
+
+      // render
+      // rank
+      
+      renderRankingSystem()
+
+      const objToNow = (objId) => {
+        const dateFromObjectId = function (objectId) {
+          return new Date(parseInt(objectId.substring(0, 8), 16) * 1000);
+        };
+        return dateFromObjectId(objId);
+      };
+
+      // 주간,월간 그래프 교체하기
+      const ctx = document.getElementById("periodChart");
+      let chart = null;
+
+      function drawChart({ labels, data, title, type, yMin = 0, yMax, stepSize }) {
+        // 기존 차트 제거하고 다음 그래프 그리기
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+          type,
+          data: {
+            labels,
+            datasets: [{
+              label: title,
+              data
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `운동시간: ${context.parsed.y} 분`;
+                  }
+                }
+              },
+              legend: { display: true }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                }
+              },
+              y: {
+                min: yMin,
+                max: yMax,
+                ticks: {
+                  stepSize: stepSize
+                },
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      document.getElementById("btn-week").addEventListener("click", () => drawWeeklyChart());
+      document.getElementById("btn-month").addEventListener("click", () => drawMonthlyChart());
+
+      function drawWeeklyChart() {
+        $.ajax({
+          type: "GET",
+          url: "/get_week_history",
+          xhrFields: { withCredentials: true },
+          success: (response) => {
+            const labels = ["월", "화", "수", "목", "금", "토", "일"];
+            const data = new Array(7).fill(0);
+
+            response.forEach(item => {
+              data[item.day] += item.time;
+            });
+
+            drawChart({
+              labels,
+              data,
+              title: "주간 운동시간(분)",
+              type: "bar",
+              yMin: 0,
+              yMax: Math.max(...data) + 10,
+              stepSize: 10
+            });
+
+          }
+        });
+      }
+
+      function drawMonthlyChart() {
+        $.ajax({
+          type: "GET",
+          url: "/get_month_history",
+          xhrFields: { withCredentials: true },
+          success: (response) => {
+            const labels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+            const data = new Array(12).fill(0);
+
+            response.forEach(item => {
+              data[item.month - 1] = item.time;
+            });
+
+            drawChart({
+              labels,
+              data,
+              title: "월간 운동시간(분)",
+              type: "line",
+              yMin: 0,
+              yMax: Math.max(...data) + 10,
+              stepSize: 50
+            });
+
+          }
+        });
+      }
+      
+
+      window.onload = function() {
+          if ($(".exercise_btn").length === 1 ? true : false) {
+            localStorage.setItem("loginStatus",true)
+            startEndCheck();
+          } else {
+            localStorage.setItem("loginStatus",false);
+            localStorage.setItem("presentMenu",0);
+          }
+          if (localStorage.getItem("presentMenu") === "0") {
+            dashBoardButton();
+          } else if (localStorage.getItem("presentMenu") === "1") {
+            recordButton();
+          }
+      }
+
+      function startEndCheck() {
+          $.ajax({
+            type:"get",
+            url:"/check_started",
+            success:(response)=>{
+              if (response === "이미출근") {
+                exerciseStartEndMaker(true)
+              }
+              else {
+                exerciseStartEndMaker(false)
+              }
+              
+              
+            }
+          })
+      }
+      setInterval(setPopularFunction(),3600000)
+    </script>
+</body>
+
+>>>>>>> theirs
 </html>
